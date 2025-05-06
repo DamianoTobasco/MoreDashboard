@@ -17,7 +17,8 @@ export function ShootingStarsDemo() {
           Shooting Stars Effect
         </h1>
         <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto px-4">
-          A mesmerizing background effect with customizable shooting stars traversing across the screen
+          A mesmerizing background effect with customizable shooting stars
+          traversing across the screen
         </p>
       </div>
 
@@ -49,13 +50,16 @@ export function ShootingStarsDemo() {
 
       <style jsx>{`
         .stars {
-          background-image: 
-            radial-gradient(2px 2px at 20px 30px, #eee, rgba(0,0,0,0)),
-            radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
-            radial-gradient(2px 2px at 50px 160px, #ddd, rgba(0,0,0,0)),
-            radial-gradient(2px 2px at 90px 40px, #fff, rgba(0,0,0,0)),
-            radial-gradient(2px 2px at 130px 80px, #fff, rgba(0,0,0,0)),
-            radial-gradient(2px 2px at 160px 120px, #ddd, rgba(0,0,0,0));
+          background-image: radial-gradient(
+              2px 2px at 20px 30px,
+              #eee,
+              rgba(0, 0, 0, 0)
+            ),
+            radial-gradient(2px 2px at 40px 70px, #fff, rgba(0, 0, 0, 0)),
+            radial-gradient(2px 2px at 50px 160px, #ddd, rgba(0, 0, 0, 0)),
+            radial-gradient(2px 2px at 90px 40px, #fff, rgba(0, 0, 0, 0)),
+            radial-gradient(2px 2px at 130px 80px, #fff, rgba(0, 0, 0, 0)),
+            radial-gradient(2px 2px at 160px 120px, #ddd, rgba(0, 0, 0, 0));
           background-repeat: repeat;
           background-size: 200px 200px;
           animation: twinkle 5s ease-in-out infinite;
@@ -63,9 +67,15 @@ export function ShootingStarsDemo() {
         }
 
         @keyframes twinkle {
-          0% { opacity: 0.5; }
-          50% { opacity: 0.8; }
-          100% { opacity: 0.5; }
+          0% {
+            opacity: 0.5;
+          }
+          50% {
+            opacity: 0.8;
+          }
+          100% {
+            opacity: 0.5;
+          }
         }
       `}</style>
     </div>

@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { DashboardData, DataSourceTimestamps, TokenHolder } from '../types';
+import { getMarketCap, getTokenPrice, getRecentTransfers, getTokenHolders, getHoldersCount, getBurnData } from '../moralis_api/api';
+
+
 import { 
   mockMeta, 
   mockSupply, 
@@ -19,8 +22,8 @@ const BURN_ADDRESS = '0x000000000000000000000000000000000000dEaD';
 
 // Polling intervals (in milliseconds)
 const INTERVALS = {
-  PRICE: 60000,       // 1 minute
-  MARKET_DATA: 60000, // 1 minute
+  PRICE: 10000,       // 1 minute
+  MARKET_DATA: 10000, // 1 minute
   TRANSFERS: 60000,   // 1 minute
   HOLDERS: 300000,    // 5 minutes
   BURN_INFO: 300000,  // 5 minutes
@@ -58,22 +61,23 @@ const useDashboardData = () => {
   // Fetch burn data from blockchain
   const fetchBurnData = useCallback(async () => {
     try {
-      const burnedRawParams = {
-        to: TOKEN_ADDRESS,
-        data: `0x70a08231000000000000000000000000${BURN_ADDRESS.substring(2).padStart(40, '0')}`
-      };
+      // const burnedRawParams = {
+      //   to: TOKEN_ADDRESS,
+      //   data: `0x70a08231000000000000000000000000${BURN_ADDRESS.substring(2).padStart(40, '0')}`
+      // };
       
-      const supplyRawParams = {
-        to: TOKEN_ADDRESS,
-        data: "0x18160ddd"
-      };
+      // const supplyRawParams = {
+      //   to: TOKEN_ADDRESS,
+      //   data: "0x18160ddd"
+      // };
       
       // Simulate RPC calls with mock data
+      const burnData = await getBurnData();
       const burnedRawResponse = { 
-        result: '0x' + BigInt(mockBurnedAmount).toString(16)
+        result: '0x' + BigInt(burnData.balance).toString(16)
       };
       const supplyRawResponse = { 
-        result: '0x' + BigInt(mockSupply).toString(16) 
+        result: '0x' + BigInt(burnData.total_supply).toString(16) 
       };
       
       const burnedRaw = burnedRawResponse.result;
@@ -102,18 +106,29 @@ const useDashboardData = () => {
   // Fetch price data
   const fetchPriceData = useCallback(async () => {
     try {
-      // Simulate price variations
-      const variation = (Math.random() - 0.5) * 0.0000001;
-      const updatedPrice = mockPrice + variation;
+      const updatedPrice = await getTokenPrice();
+      const marketCap = await getMarketCap();
+      const recentTransfers = await getRecentTransfers();
       
-      // Calculate market cap
-      const totalTokens = parseFloat(data.supply) / 10 ** 18;
-      const marketCap = totalTokens * updatedPrice;
-      
+      // Transform the Moralis transfer data to match TokenTransfer type
+      const formattedTransfers = recentTransfers.result.map(transfer => ({
+        blockNumber: transfer.block_number,
+        timeStamp: `${Math.floor(new Date(transfer.block_timestamp).getTime() / 1000)}`,
+        hash: transfer.transaction_hash,
+        from: transfer.from_address,
+        to: transfer.to_address,
+        value: transfer.value,
+        tokenName: transfer.token_name,
+        tokenSymbol: transfer.token_symbol,
+        tokenDecimal: transfer.token_decimals,
+        contractAddress: TOKEN_ADDRESS // Add missing required field
+      }));
+
       setData(prev => ({ 
         ...prev, 
         price: updatedPrice,
-        marketCap
+        marketCap,
+        transfers: formattedTransfers,
       }));
       setRefreshTimestamps(prev => ({ ...prev, price: Date.now() }));
     } catch (error) {
@@ -128,15 +143,28 @@ const useDashboardData = () => {
       setRefreshTimestamps(prev => ({ 
         ...prev, 
         holders: now,
-        transfers: now
+        // transfers: now
       }));
       
       // Update holders count with small random increases
-      const holderIncrease = Math.floor(Math.random() * 3);
+      // const holderIncrease = Math.floor(Math.random() * 3);
+
+      const topTokenHolders = await getTokenHolders();
+      const formattedHolders = topTokenHolders.map(holder => ({
+        address: holder.owner_address,
+        balance: holder.balance_formatted,
+        percentage: holder.percentage_relative_to_total_supply,
+        tag: "testing"
+      }));
+
+      const holdersCount = await getHoldersCount();
+
+      
       setData(prev => ({ 
         ...prev,
-        holders: prev.holders + holderIncrease,
-        transfers: mockTransfers
+        holders: holdersCount,
+        tokenHolders: formattedHolders,
+        
       }));
     } catch (error) {
       console.error('Error fetching market data:', error);

@@ -1,14 +1,21 @@
-import React from 'react';
-import { TokenTransfer } from '../types';
-import { ArrowUp, ArrowDown, ExternalLink } from 'lucide-react';
-import { truncateAddress, formatTokenValue, timeAgo } from '../utils/formatters';
+import React from "react";
+import { TokenTransfer } from "../types";
+import { ArrowUp, ArrowDown, ExternalLink } from "lucide-react";
+import {
+  truncateAddress,
+  formatTokenValue,
+  timeAgo,
+} from "../utils/formatters";
 
 interface TransfersTableProps {
   transfers: TokenTransfer[];
   isLoading: boolean;
 }
 
-const TransfersTable: React.FC<TransfersTableProps> = ({ transfers, isLoading }) => {
+const TransfersTable: React.FC<TransfersTableProps> = ({
+  transfers,
+  isLoading,
+}) => {
   if (isLoading) {
     return (
       <div className="animate-pulse">
@@ -38,14 +45,14 @@ const TransfersTable: React.FC<TransfersTableProps> = ({ transfers, isLoading })
         </thead>
         <tbody className="divide-y divide-gray-800/50">
           {transfers.map((transfer) => (
-            <tr 
-              key={transfer.hash} 
+            <tr
+              key={transfer.hash}
               className="text-sm hover:bg-black/30 transition-colors"
             >
               <td className="py-2.5 px-2">
-                <a 
-                  href={`https://scan.pulsechain.com/tx/${transfer.hash}`} 
-                  target="_blank" 
+                <a
+                  href={`https://scan.pulsechain.com/tx/${transfer.hash}`}
+                  target="_blank"
                   rel="noreferrer"
                   className="text-green-400 hover:text-green-300 hover:underline flex items-center"
                 >
@@ -57,9 +64,9 @@ const TransfersTable: React.FC<TransfersTableProps> = ({ transfers, isLoading })
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-1">
                     <ArrowUp className="h-3 w-3 text-red-400" />
-                    <a 
-                      href={`https://scan.pulsechain.com/address/${transfer.from}`} 
-                      target="_blank" 
+                    <a
+                      href={`https://scan.pulsechain.com/address/${transfer.from}`}
+                      target="_blank"
                       rel="noreferrer"
                       className="text-gray-300 hover:text-white hover:underline"
                     >
@@ -68,9 +75,9 @@ const TransfersTable: React.FC<TransfersTableProps> = ({ transfers, isLoading })
                   </div>
                   <div className="flex items-center gap-1">
                     <ArrowDown className="h-3 w-3 text-green-400" />
-                    <a 
-                      href={`https://scan.pulsechain.com/address/${transfer.to}`} 
-                      target="_blank" 
+                    <a
+                      href={`https://scan.pulsechain.com/address/${transfer.to}`}
+                      target="_blank"
                       rel="noreferrer"
                       className="text-gray-300 hover:text-white hover:underline"
                     >
@@ -91,7 +98,7 @@ const TransfersTable: React.FC<TransfersTableProps> = ({ transfers, isLoading })
           ))}
         </tbody>
       </table>
-      
+
       <div className="mt-3 text-center">
         <a
           href="https://scan.pulsechain.com/token/0x88dF7BEdc5969371A2C9A74690cBB3668061E1E9/token-transfers"

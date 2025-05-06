@@ -1,7 +1,7 @@
-import React from 'react';
-import { TokenMetadata } from '../types';
-import { ExternalLink, Share2, Copy, CheckCircle } from 'lucide-react';
-import { useState } from 'react';
+import React from "react";
+import { TokenMetadata } from "../types";
+import { ExternalLink, Share2, Copy, CheckCircle } from "lucide-react";
+import { useState } from "react";
 
 interface TokenInfoProps {
   metadata: TokenMetadata | null;
@@ -41,7 +41,7 @@ const TokenInfo: React.FC<TokenInfoProps> = ({ metadata, isLoading }) => {
         >
           {metadata.contractAddress}
         </a>
-        <button 
+        <button
           onClick={copyToClipboard}
           className="p-1 rounded-full hover:bg-black/80 transition-colors"
           title="Copy contract address"
@@ -62,7 +62,7 @@ const TokenInfo: React.FC<TokenInfoProps> = ({ metadata, isLoading }) => {
           <ExternalLink size={14} className="text-gray-400 hover:text-white" />
         </a>
       </div>
-      
+
       <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-4">
         <div>
           <p className="text-xs text-gray-400">Name</p>
@@ -81,9 +81,9 @@ const TokenInfo: React.FC<TokenInfoProps> = ({ metadata, isLoading }) => {
           <p className="text-sm text-white font-medium">PulseChain</p>
         </div>
       </div>
-      
+
       <div className="mt-5 flex flex-wrap gap-2">
-        <a 
+        <a
           href="https://app.pulsex.com/swap?outputCurrency=0x88dF7BEdc5969371A2C9A74690cBB3668061E1E9"
           target="_blank"
           rel="noreferrer"
@@ -92,10 +92,8 @@ const TokenInfo: React.FC<TokenInfoProps> = ({ metadata, isLoading }) => {
           Trade on PulseX
           <ExternalLink size={12} className="ml-1" />
         </a>
-        
-        <button
-          className="text-xs bg-black/50 hover:bg-black/80 text-gray-300 px-3 py-1.5 rounded-lg transition-colors flex items-center"
-        >
+
+        <button className="text-xs bg-black/50 hover:bg-black/80 text-gray-300 px-3 py-1.5 rounded-lg transition-colors flex items-center">
           Share
           <Share2 size={12} className="ml-1" />
         </button>

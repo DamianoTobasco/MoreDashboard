@@ -10,6 +10,9 @@ export default defineConfig({
   server: {
     headers: {
       'Cross-Origin-Opener-Policy': 'unsafe-none'
-    }
+    },
+    host: "0.0.0.0",
+    port: 5173,
+
   }
 });

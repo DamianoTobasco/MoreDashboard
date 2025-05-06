@@ -1,5 +1,5 @@
-import React from 'react';
-import { CandleData } from '../types';
+import React from "react";
+import { CandleData } from "../types";
 
 interface PriceChartProps {
   data: CandleData[];
@@ -19,13 +19,13 @@ const PriceChart: React.FC<PriceChartProps> = ({ isLoading }) => {
     <div className="w-full h-full relative">
       <iframe
         src="https://dexscreener.com/pulsechain/0x88dF7BEdc5969371A2C9A74690cBB3668061E1E9?embed=1&theme=dark&trades=0&info=0"
-        style={{ 
-          width: '100%', 
-          height: '500px', 
-          minHeight: '400px',
-          border: 'none',
-          borderRadius: '8px',
-          backgroundColor: 'transparent'
+        style={{
+          width: "100%",
+          height: "500px",
+          minHeight: "400px",
+          border: "none",
+          borderRadius: "8px",
+          backgroundColor: "transparent",
         }}
         title="MORE Token Chart on DexScreener"
         allowFullScreen

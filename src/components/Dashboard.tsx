@@ -1,22 +1,22 @@
-import React from 'react';
-import { ActivitySquare, Users, BarChart3, DollarSign } from 'lucide-react';
-import GlassPanel from './ui/GlassPanel';
-import KpiCard from './ui/KpiCard';
-import PriceChart from './PriceChart';
-import TransfersTable from './TransfersTable';
-import TokenInfo from './TokenInfo';
-import TokenHolders from './TokenHolders';
-import TradingModule from './TradingModule';
-import BurnInfo from './BurnInfo';
-import WalletConnect from './WalletConnect';
-import useDashboardData from '../hooks/useDataFetching';
-import { formatCurrency, formatLargeNumber } from '../utils/formatters';
-import { ButtonColorful } from './ui/button-colorful';
-import { ShinyText } from './ui/shiny-text';
+import React from "react";
+import { ActivitySquare, Users, BarChart3, DollarSign } from "lucide-react";
+import GlassPanel from "./ui/GlassPanel";
+import KpiCard from "./ui/KpiCard";
+import PriceChart from "./PriceChart";
+import TransfersTable from "./TransfersTable";
+import TokenInfo from "./TokenInfo";
+import TokenHolders from "./TokenHolders";
+import TradingModule from "./TradingModule";
+import BurnInfo from "./BurnInfo";
+import WalletConnect from "./WalletConnect";
+import useDashboardData from "../hooks/useDataFetching";
+import { formatCurrency, formatLargeNumber } from "../utils/formatters";
+import { ButtonColorful } from "./ui/button-colorful";
+import { ShinyText } from "./ui/shiny-text";
 
 const Dashboard: React.FC = () => {
   const { data, loading, refreshTimestamps } = useDashboardData();
-  
+
   return (
     <div className="p-4 sm:p-6">
       {/* Header */}
@@ -25,10 +25,10 @@ const Dashboard: React.FC = () => {
           <div>
             <h1 className="text-3xl font-bold mb-1 relative">
               <span className="relative">
-                <ShinyText 
-                  text="MORE DASHBOARD" 
-                  color="#0DFF00" 
-                  speed={3} 
+                <ShinyText
+                  text="MORE DASHBOARD"
+                  color="#0DFF00"
+                  speed={3}
                   className="font-bold text-3xl"
                 />
                 <span className="absolute inset-0 -z-10 bg-custom-green/10 blur-xl"></span>
@@ -48,7 +48,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
-      
+
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 mb-6">
         <KpiCard
@@ -76,23 +76,23 @@ const Dashboard: React.FC = () => {
           icon={<Users size={18} />}
         />
       </div>
-      
+
       {/* Main Content */}
       <div className="space-y-6">
         {/* Chart and Trading Info */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-9">
             <GlassPanel title="24h Price Chart">
-              <PriceChart 
-                data={data.candles} 
-                isLoading={loading} 
-              />
+              <PriceChart data={data.candles} isLoading={loading} />
             </GlassPanel>
           </div>
-          
+
           <div className="lg:col-span-3">
-            <GlassPanel title="Trade MORE Token" className="bg-black/80 hover:border-custom-green/40">
-              <TradingModule 
+            <GlassPanel
+              title="Trade MORE Token"
+              className="bg-black/80 hover:border-custom-green/40"
+            >
+              <TradingModule
                 tokenSymbol="MORE"
                 tokenAddress="0x88dF7BEdc5969371A2C9A74690cBB3668061E1E9"
                 currentPrice={data.price}
@@ -101,13 +101,13 @@ const Dashboard: React.FC = () => {
             </GlassPanel>
           </div>
         </div>
-        
+
         {/* Burn Info */}
-        <GlassPanel 
-          title="Token Burn Statistics" 
+        <GlassPanel
+          title="Token Burn Statistics"
           className="bg-gradient-to-br from-black/70 to-red-950/30 hover:border-red-500/30"
         >
-          <BurnInfo 
+          <BurnInfo
             burnAddress={data.burnAddress || ""}
             burnedAmount={data.burnedAmount || "0"}
             totalSupply={data.supply}
@@ -115,18 +115,15 @@ const Dashboard: React.FC = () => {
             burnPct={data.burnPct}
           />
         </GlassPanel>
-        
+
         {/* Token Info and Market Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-8">
             <GlassPanel title="Recent Transfers">
-              <TransfersTable 
-                transfers={data.transfers} 
-                isLoading={loading} 
-              />
+              <TransfersTable transfers={data.transfers} isLoading={loading} />
             </GlassPanel>
           </div>
-          
+
           <div className="lg:col-span-4">
             <GlassPanel title="Market Activity" className="h-full">
               {loading ? (
@@ -140,23 +137,31 @@ const Dashboard: React.FC = () => {
                     <div className="border-r border-gray-800 pr-4">
                       <h3 className="text-sm text-gray-400 mb-2">24h Volume</h3>
                       <div className="bg-gradient-to-r from-custom-green/20 to-transparent p-2 rounded-lg">
-                        <p className="text-xl font-bold text-white">{formatCurrency(4237.65)}</p>
+                        <p className="text-xl font-bold text-white">
+                          {formatCurrency(4237.65)}
+                        </p>
                         <div className="flex items-center mt-1">
-                          <span className="text-xs bg-custom-green/20 text-custom-green px-2 py-0.5 rounded-full">+12.4%</span>
+                          <span className="text-xs bg-custom-green/20 text-custom-green px-2 py-0.5 rounded-full">
+                            +12.4%
+                          </span>
                         </div>
                       </div>
                     </div>
                     <div>
                       <h3 className="text-sm text-gray-400 mb-2">Liquidity</h3>
                       <div className="bg-gradient-to-r from-custom-green/20 to-transparent p-2 rounded-lg">
-                        <p className="text-xl font-bold text-white">{formatCurrency(35620.42)}</p>
+                        <p className="text-xl font-bold text-white">
+                          {formatCurrency(35620.42)}
+                        </p>
                         <div className="flex items-center mt-1">
-                          <span className="text-xs bg-custom-green/20 text-custom-green px-2 py-0.5 rounded-full">+0.8%</span>
+                          <span className="text-xs bg-custom-green/20 text-custom-green px-2 py-0.5 rounded-full">
+                            +0.8%
+                          </span>
                         </div>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="mt-4">
                     <h3 className="text-sm text-gray-400 mb-3 flex items-center">
                       <span className="inline-block w-1 h-4 bg-custom-green rounded mr-2"></span>
@@ -165,12 +170,20 @@ const Dashboard: React.FC = () => {
                     <div className="bg-black/30 p-3 rounded-lg border border-gray-800/30">
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <p className="text-xs text-gray-400 mb-1">All-Time High</p>
-                          <p className="text-sm text-white font-semibold">{formatCurrency(0.0000348)}</p>
+                          <p className="text-xs text-gray-400 mb-1">
+                            All-Time High
+                          </p>
+                          <p className="text-sm text-white font-semibold">
+                            {formatCurrency(0.0000348)}
+                          </p>
                         </div>
                         <div>
-                          <p className="text-xs text-gray-400 mb-1">All-Time Low</p>
-                          <p className="text-sm text-white font-semibold">{formatCurrency(0.0000168)}</p>
+                          <p className="text-xs text-gray-400 mb-1">
+                            All-Time Low
+                          </p>
+                          <p className="text-sm text-white font-semibold">
+                            {formatCurrency(0.0000168)}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -180,19 +193,21 @@ const Dashboard: React.FC = () => {
             </GlassPanel>
           </div>
         </div>
-        
+
         {/* Token Holders - Full Width */}
         <GlassPanel title="Top Token Holders">
-          <TokenHolders
-            isLoading={loading}
-          />
+          <TokenHolders isLoading={loading} />
         </GlassPanel>
       </div>
-      
+
       {/* Footer */}
       <div className="mt-8 text-center text-gray-500 text-xs">
-        <p>Data provided by PulseChain and Moralis APIs. Updated in real-time.</p>
-        <p className="mt-1">© 2025 MORE Token Dashboard. All prices shown in USD.</p>
+        <p>
+          Data provided by PulseChain and Moralis APIs. Updated in real-time.
+        </p>
+        <p className="mt-1">
+          © 2025 MORE Token Dashboard. All prices shown in USD.
+        </p>
       </div>
     </div>
   );
