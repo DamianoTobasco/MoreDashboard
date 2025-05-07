@@ -1,19 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { DashboardData, DataSourceTimestamps, TokenHolder } from '../types';
-import { getMarketCap, getTokenPrice, getRecentTransfers, getTokenHolders, getHoldersCount, getBurnData } from '../moralis_api/api';
+import { DashboardData, DataSourceTimestamps} from '../types';
+import { getMarketCap, getTokenPrice, getRecentTransfers, getTokenHolders, getHoldersCount, getBurnData, getTokenVolumeAndLiquidity, getWpslPrice } from '../moralis_api/api';
 
-
-import { 
-  mockMeta, 
-  mockSupply, 
-  mockPrice, 
-  mockHolders, 
-  mockTransfers, 
-  mockCandles, 
-  mockMarketCap,
-  mockBurnAddress,
-  mockBurnedAmount
-} from '../utils/mockData';
 import Moralis from 'moralis';
 
 // RPC configurations
@@ -43,7 +31,10 @@ const useDashboardData = () => {
     tokenHolders: [],
     burnAddress: "",
     burnedAmount: "0",
-    burnPct: "0"
+    burnPct: "0",
+    volume: "0",
+    liquidity: "0",
+    plsPrice: 0
   });
   const[moralisInitialized, setMoralisInitialized] = useState<boolean>(false);
   useEffect(() => {
@@ -72,7 +63,10 @@ const useDashboardData = () => {
     transfers: 0,
     candles: 0,
     tokenHolders: 0,
-    burnInfo: 0
+    burnInfo: 0,
+    volume: 0,
+    liquidity: 0,
+    plsPrice: 0
   });
 
 //   // Fetch burn data from blockchain
@@ -200,14 +194,18 @@ const useDashboardData = () => {
         transfersData,
         holdersData,
         holdersCountData,
-        burnData
+        burnData,
+        volumeAndLiquidityData,
+        plsPriceData
       ] = await Promise.all([
         getTokenPrice(),
         getMarketCap(),
         getRecentTransfers(),
         getTokenHolders(),
         getHoldersCount(),
-        getBurnData()
+        getBurnData(),
+        getTokenVolumeAndLiquidity(),
+        getWpslPrice()
       ]);
 
       // Transform transfers data
@@ -247,7 +245,9 @@ const useDashboardData = () => {
         burnedAmount: burnData.balance,
         supply:burnData.total_supply,
         burnPct,
-        // candles: prev.candles  // Keep existing candles data
+        volume: volumeAndLiquidityData[1],
+        liquidity: volumeAndLiquidityData[0],
+        plsPrice: plsPriceData,
       }));
 
       // Update timestamps except for candles

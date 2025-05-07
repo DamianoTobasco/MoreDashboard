@@ -26,6 +26,7 @@ interface TradingModuleProps {
   tokenSymbol: string;
   tokenAddress: string;
   currentPrice: number;
+  plsPrice: number;
   isLoading: boolean;
 }
 
@@ -33,6 +34,7 @@ const TradingModule: React.FC<TradingModuleProps> = ({
   tokenSymbol,
   tokenAddress,
   currentPrice,
+  plsPrice,
   isLoading,
 }) => {
   const [fromAmount, setFromAmount] = useState<string>("");
@@ -73,10 +75,21 @@ const TradingModule: React.FC<TradingModuleProps> = ({
     setFromAmount(value);
     if (value && !isNaN(parseFloat(value))) {
       // Estimated conversion
-      const estimatedOutput = parseFloat(value) / currentPrice;
-      setToAmount(
-        estimatedOutput.toLocaleString(undefined, { maximumFractionDigits: 2 })
-      );
+      if (fromToken == "PLS") {
+        const estimatedOutput = (parseFloat(value) * plsPrice) / currentPrice;
+        setToAmount(
+          estimatedOutput.toLocaleString(undefined, {
+            maximumFractionDigits: 3,
+          })
+        );
+      } else {
+        const estimatedOutput = (parseFloat(value) * currentPrice) / plsPrice;
+        setToAmount(
+          estimatedOutput.toLocaleString(undefined, {
+            maximumFractionDigits: 3,
+          })
+        );
+      }
     } else {
       setToAmount("");
     }
@@ -86,10 +99,17 @@ const TradingModule: React.FC<TradingModuleProps> = ({
     setToAmount(value);
     if (value && !isNaN(parseFloat(value))) {
       // Estimated conversion
-      const estimatedInput = parseFloat(value) * currentPrice;
-      setFromAmount(
-        estimatedInput.toLocaleString(undefined, { maximumFractionDigits: 6 })
-      );
+      if (toToken == "PLS") {
+        const estimatedInput = (parseFloat(value) * plsPrice) / currentPrice;
+        setFromAmount(
+          estimatedInput.toLocaleString(undefined, { maximumFractionDigits: 3 })
+        );
+      } else {
+        const estimatedInput = (parseFloat(value) * currentPrice) / plsPrice;
+        setFromAmount(
+          estimatedInput.toLocaleString(undefined, { maximumFractionDigits: 3 })
+        );
+      }
     } else {
       setFromAmount("");
     }

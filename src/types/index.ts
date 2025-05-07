@@ -47,6 +47,9 @@ export interface DashboardData {
   burnAddress?: string;
   burnedAmount?: string;
   burnPct?: string;
+  volume: string;
+  liquidity: string;
+  plsPrice: number;
 }
 
 export interface DataSourceTimestamps {
@@ -58,6 +61,9 @@ export interface DataSourceTimestamps {
   candles: number;
   tokenHolders: number;
   burnInfo?: number;
+  volume: number;
+  liquidity: number;
+  plsPrice: number;
 }
 
 // Add TradingView to Window interface

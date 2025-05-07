@@ -1,7 +1,7 @@
 import Moralis from "moralis";
 
 
-let moralisInitialized = false;
+
 
 export const getTokenPrice = async() => {
   try {

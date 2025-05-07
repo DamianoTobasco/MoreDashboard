@@ -108,6 +108,7 @@ const Dashboard: React.FC = () => {
                 tokenSymbol="MORE"
                 tokenAddress="0x88dF7BEdc5969371A2C9A74690cBB3668061E1E9"
                 currentPrice={data.price}
+                plsPrice={data.plsPrice}
                 isLoading={loading}
               />
             </GlassPanel>
@@ -150,7 +151,7 @@ const Dashboard: React.FC = () => {
                       <h3 className="text-sm text-gray-400 mb-2">24h Volume</h3>
                       <div className="bg-gradient-to-r from-custom-green/20 to-transparent p-2 rounded-lg">
                         <p className="text-xl font-bold text-white">
-                          {formatCurrency(4237.65)}
+                          {formatCurrency(data.volume)}
                         </p>
                         <div className="flex items-center mt-1">
                           <span className="text-xs bg-custom-green/20 text-custom-green px-2 py-0.5 rounded-full">
@@ -163,7 +164,7 @@ const Dashboard: React.FC = () => {
                       <h3 className="text-sm text-gray-400 mb-2">Liquidity</h3>
                       <div className="bg-gradient-to-r from-custom-green/20 to-transparent p-2 rounded-lg">
                         <p className="text-xl font-bold text-white">
-                          {formatCurrency(35620.42)}
+                          {formatCurrency(data.liquidity)}
                         </p>
                         <div className="flex items-center mt-1">
                           <span className="text-xs bg-custom-green/20 text-custom-green px-2 py-0.5 rounded-full">
