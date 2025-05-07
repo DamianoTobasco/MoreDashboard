@@ -48,12 +48,12 @@ const Dashboard: React.FC = () => {
         </div>
         <div className="mt-4 sm:mt-0 flex items-center gap-4">
           <WalletConnect />
-          <div className="inline-flex items-center px-3 py-3 rounded-lg bg-custom-green/10 border border-custom-green/20 text-custom-green hover:bg-custom-green/20 duration-200">
+          <div className="inline-flex items-center justify-center px-3 py-3 rounded-lg min-w-[176px] bg-custom-green/10 border border-custom-green/20 text-custom-green hover:bg-custom-green/20 duration-200">
             <span className="animate-pulse mr-2 w-2 h-2 rounded-full bg-custom-green"></span>
             <button
               onClick={handleRefresh}
               disabled={loading}
-              className="refresh-button"
+              className="flex items-center justify-center"
             >
               {loading ? "Refreshing..." : "Refresh"}
             </button>
