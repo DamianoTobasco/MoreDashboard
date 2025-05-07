@@ -52,11 +52,16 @@ const useDashboardData = () => {
   
   const handleMoralisStart = async () => {
     if (!moralisInitialized) {
-    await Moralis.start({
-      apiKey: import.meta.env.VITE_MORALIS_API_KEY,
-    });
-    setMoralisInitialized(true)
-  }}
+      try { 
+        await Moralis.start({
+          apiKey: import.meta.env.VITE_MORALIS_API_KEY,
+        });
+        setMoralisInitialized(true)
+      } catch{
+        // return
+      }
+    }
+  }
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshTimestamps, setRefreshTimestamps] = useState<DataSourceTimestamps>({
