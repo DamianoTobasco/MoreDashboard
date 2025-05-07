@@ -61,5 +61,7 @@ export const timeAgo = (timestamp: string): string => {
  * Format a token value based on its decimals
  */
 export const formatTokenValue = (value: string, decimals: number = 18): string => {
+
   return (parseFloat(value) / 10 ** decimals).toFixed(4);
+  // return (parseFloat(value) / 10 ** decimals).toFixed(4);
 };

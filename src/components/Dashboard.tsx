@@ -1,21 +1,27 @@
-import React from "react";
-import { ActivitySquare, Users, BarChart3, DollarSign } from "lucide-react";
+import React, { useEffect } from "react";
+import { Users, BarChart3, DollarSign } from "lucide-react";
 import GlassPanel from "./ui/GlassPanel";
 import KpiCard from "./ui/KpiCard";
 import PriceChart from "./PriceChart";
 import TransfersTable from "./TransfersTable";
-import TokenInfo from "./TokenInfo";
+// import TokenInfo from "./TokenInfo";
 import TokenHolders from "./TokenHolders";
 import TradingModule from "./TradingModule";
 import BurnInfo from "./BurnInfo";
 import WalletConnect from "./WalletConnect";
 import useDashboardData from "../hooks/useDataFetching";
 import { formatCurrency, formatLargeNumber } from "../utils/formatters";
-import { ButtonColorful } from "./ui/button-colorful";
+// import { ButtonColorful } from "./ui/button-colorful";
 import { ShinyText } from "./ui/shiny-text";
 
 const Dashboard: React.FC = () => {
-  const { data, loading, refreshTimestamps } = useDashboardData();
+  const { data, loading, refreshTimestamps, refreshData } = useDashboardData();
+  useEffect(() => {
+    handleRefresh();
+  }, []);
+  const handleRefresh = async () => {
+    await refreshData();
+  };
 
   return (
     <div className="p-4 sm:p-6">
@@ -44,7 +50,13 @@ const Dashboard: React.FC = () => {
           <WalletConnect />
           <div className="inline-flex items-center px-3 py-1 rounded-full bg-custom-green/10 border border-custom-green/20 text-custom-green">
             <span className="animate-pulse mr-2 w-2 h-2 rounded-full bg-custom-green"></span>
-            Live Data
+            <button
+              onClick={handleRefresh}
+              disabled={loading}
+              className="refresh-button"
+            >
+              {loading ? "Refreshing..." : "Refresh Data"}
+            </button>
           </div>
         </div>
       </div>
@@ -83,7 +95,7 @@ const Dashboard: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-9">
             <GlassPanel title="24h Price Chart">
-              <PriceChart data={data.candles} isLoading={loading} />
+              <PriceChart data={data.candles} isLoading={false} />
             </GlassPanel>
           </div>
 
@@ -196,7 +208,7 @@ const Dashboard: React.FC = () => {
 
         {/* Token Holders - Full Width */}
         <GlassPanel title="Top Token Holders">
-          <TokenHolders isLoading={loading} />
+          <TokenHolders isLoading={loading} tokenHolders={data.tokenHolders} />
         </GlassPanel>
       </div>
 

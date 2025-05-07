@@ -5,12 +5,7 @@ let moralisInitialized = false;
 
 export const getTokenPrice = async() => {
   try {
-    if (!moralisInitialized) {
-      await Moralis.start({
-        apiKey: import.meta.env.VITE_MORALIS_API_KEY,
-      });
-      moralisInitialized = true
-    }
+    
     const response = await Moralis.EvmApi.token.getTokenPrice({
       chain: 369,
       address: import.meta.env.VITE_TOKEN_ADDRESS,
@@ -36,7 +31,7 @@ export const getTokenVolumeAndLiquidity = async () => {
   };
 
   const response = await fetch(
-    `https://deep-index.moralis.io/api/v2.2/tokens/0x88dF7BEdc5969371A2C9A74690cBB3668061E1E9/analytics?chain=pulse`,
+    `https://deep-index.moralis.io/api/v2.2/tokens/${import.meta.env.VITE_TOKEN_ADDRESS}/analytics?chain=pulse`,
     options
   );
   const result = await response.json();
@@ -52,13 +47,7 @@ export const getTokenVolumeAndLiquidity = async () => {
 
 export const getMarketCap = async () => {
   try {
-    if (!moralisInitialized) {
-      await Moralis.start({
-        apiKey: import.meta.env.VITE_MORALIS_API_KEY,
-      });
-      moralisInitialized = true
-    }
-
+    
     const response = await Moralis.EvmApi.token.getTokenMetadata({
       chain: 369,
       addresses: [import.meta.env.VITE_TOKEN_ADDRESS],
@@ -72,12 +61,7 @@ export const getMarketCap = async () => {
 
 export const getRecentTransfers = async () => {
   try {
-    if (!moralisInitialized) {
-      await Moralis.start({
-        apiKey: import.meta.env.VITE_MORALIS_API_KEY,
-      });
-      moralisInitialized = true
-    }
+   
 
     const response = await Moralis.EvmApi.token.getTokenTransfers({
       chain: 369,
@@ -95,12 +79,7 @@ export const getRecentTransfers = async () => {
 
 export const getTokenHolders = async () => {
   try {
-    if (!moralisInitialized) {
-      await Moralis.start({
-        apiKey: import.meta.env.VITE_MORALIS_API_KEY,
-      });
-      moralisInitialized = true
-    }
+   
 
     const response = await Moralis.EvmApi.token.getTokenOwners({
       chain: 369,
@@ -137,12 +116,7 @@ export const getHoldersCount = async () => {
 
 export const getBurnData = async () => {
   try {
-    if (!moralisInitialized) {
-      await Moralis.start({
-        apiKey: import.meta.env.VITE_MORALIS_API_KEY,
-      });
-      moralisInitialized = true
-    }
+   
 
     const response = await Moralis.EvmApi.token.getWalletTokenBalances({
       chain: 369,
@@ -152,6 +126,22 @@ export const getBurnData = async () => {
     return response.raw[0];
   } catch (error) {
     console.error("Error fetching token burns:", error);
+    throw error;
+  }
+}
+
+
+export const getWpslPrice = async () => {
+  try {
+    
+    const response = await Moralis.EvmApi.token.getTokenPrice({
+      chain: 369,
+      address: import.meta.env.VITE_WPSL_ADDRESS,
+    });
+    // console.log(response.raw.usdPrice);
+    return response.raw.usdPrice;
+  } catch (error) {
+    console.error("Error fetching token price:", error);
     throw error;
   }
 }

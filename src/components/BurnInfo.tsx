@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Flame, ExternalLink, Info } from 'lucide-react';
-import { formatLargeNumber, truncateAddress } from '../utils/formatters';
+import React, { useState } from "react";
+import { Flame, ExternalLink, Info } from "lucide-react";
+import { formatLargeNumber, truncateAddress } from "../utils/formatters";
 
 interface BurnInfoProps {
   burnAddress: string;
@@ -15,19 +15,22 @@ const BurnInfo: React.FC<BurnInfoProps> = ({
   burnedAmount,
   totalSupply,
   isLoading,
-  burnPct
+  burnPct,
 }) => {
   const [showTooltip, setShowTooltip] = useState(false);
 
   // Calculate burn percentage from the provided data
   let burnPercentage: number = 0;
-  
+
   if (burnPct && !isNaN(parseFloat(burnPct))) {
     // Use the provided burn percentage from RPC call
     burnPercentage = parseFloat(burnPct);
-  } else if (burnedAmount && totalSupply && 
-             !isNaN(parseFloat(burnedAmount)) && 
-             !isNaN(parseFloat(totalSupply))) {
+  } else if (
+    burnedAmount &&
+    totalSupply &&
+    !isNaN(parseFloat(burnedAmount)) &&
+    !isNaN(parseFloat(totalSupply))
+  ) {
     // Fallback calculation if direct percentage not available
     const burnedTokens = parseFloat(burnedAmount) / 10 ** 18;
     const totalTokens = parseFloat(totalSupply) / 10 ** 18;
@@ -35,9 +38,10 @@ const BurnInfo: React.FC<BurnInfoProps> = ({
   }
 
   // Burn tokens in readable format
-  const burnedTokens = burnedAmount && !isNaN(parseFloat(burnedAmount)) 
-    ? parseFloat(burnedAmount) / 10 ** 18 
-    : 0;
+  const burnedTokens =
+    burnedAmount && !isNaN(parseFloat(burnedAmount))
+      ? parseFloat(burnedAmount) / 10 ** 18
+      : 0;
 
   if (isLoading) {
     return (
@@ -74,7 +78,9 @@ const BurnInfo: React.FC<BurnInfoProps> = ({
                 <Info size={14} className="text-gray-400" />
                 {showTooltip && (
                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-black rounded-lg text-xs text-gray-300 w-48 shadow-xl border border-gray-800">
-                    Burn address is a zero-address or specialized contract where tokens sent are irretrievably lost, permanently reducing circulating supply.
+                    Burn address is a zero-address or specialized contract where
+                    tokens sent are irretrievably lost, permanently reducing
+                    circulating supply.
                   </div>
                 )}
               </button>
@@ -91,10 +97,14 @@ const BurnInfo: React.FC<BurnInfoProps> = ({
                   <Flame className="text-red-400 mr-2" size={24} />
                   {formatLargeNumber(burnedTokens)} MORE
                 </h3>
-                <p className="text-gray-400 text-sm mt-1">Total Tokens Burned Forever</p>
+                <p className="text-gray-400 text-sm mt-1">
+                  Total Tokens Burned Forever
+                </p>
               </div>
               <div className="text-right">
-                <h4 className="text-2xl font-bold text-red-400">{burnPercentage.toFixed(1)}%</h4>
+                <h4 className="text-2xl font-bold text-red-400">
+                  {burnPercentage.toFixed(1)}%
+                </h4>
                 <p className="text-gray-400 text-sm">of Total Supply</p>
               </div>
             </div>
@@ -102,8 +112,8 @@ const BurnInfo: React.FC<BurnInfoProps> = ({
             {/* Burn Progress Bar */}
             <div className="mt-4">
               <div className="w-full bg-black rounded-full h-3 overflow-hidden">
-                <div 
-                  className="bg-gradient-to-r from-red-500 to-red-400 h-full rounded-full transition-all duration-1000" 
+                <div
+                  className="bg-gradient-to-r from-red-500 to-red-400 h-full rounded-full transition-all duration-1000"
                   style={{ width: `${burnPercentage}%` }}
                 />
               </div>

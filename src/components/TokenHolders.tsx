@@ -11,9 +11,13 @@ import { TokenHolder } from "../types";
 
 interface TokenHoldersProps {
   isLoading: boolean;
+  tokenHolders: TokenHolder[];
 }
 
-const TokenHolders: React.FC<TokenHoldersProps> = ({ isLoading }) => {
+const TokenHolders: React.FC<TokenHoldersProps> = ({
+  isLoading,
+  tokenHolders,
+}) => {
   const [holders, setHolders] = useState<TokenHolder[]>([]);
   const [visibleHolders, setVisibleHolders] = useState<TokenHolder[]>([]);
   const [expandedHolder, setExpandedHolder] = useState<string | null>(null);
@@ -24,68 +28,72 @@ const TokenHolders: React.FC<TokenHoldersProps> = ({ isLoading }) => {
   useEffect(() => {
     const fetchHolders = async () => {
       try {
-        const items = [
-          {
-            address: "0xFD37BAD180E2F7C3Db4d84a8D36dF29161e40C89",
-            balance: "310000000000000000000000000",
-            percentage: 31.0,
-            tag: "PulseX LP",
-          },
-          {
-            address: "0x2E2BbF46EC6D6364e7A211B228123880ca5B928f",
-            balance: "215000000000000000000000000",
-            percentage: 21.5,
-            tag: "Treasury",
-          },
-          {
-            address: "0xA2Bc278C394Be34DcBD48B3C4273Ff40A25a75f9",
-            balance: "95000000000000000000000000",
-            percentage: 9.5,
-            tag: "Staking Contract",
-          },
-          {
-            address: "0x7243f5c1D05f9Aa5E4c898566e12c6b4F2aD2057",
-            balance: "85000000000000000000000000",
-            percentage: 8.5,
-            tag: "Deployer",
-          },
-          {
-            address: "0x3D1c58B6d4501E6B8B2DbA9a970ae282b93360F2",
-            balance: "62500000000000000000000000",
-            percentage: 6.25,
-          },
-          {
-            address: "0xF23568694253C917EAD985D78Fc12747F39F134B",
-            balance: "48000000000000000000000000",
-            percentage: 4.8,
-          },
-          {
-            address: "0x9126573D9c2E4c5129a23ab3585Ab0e9614Bd99E",
-            balance: "37000000000000000000000000",
-            percentage: 3.7,
-          },
-          {
-            address: "0x821863b64d3caA0B8C8fD43c0cC4DD2f72ff6c91",
-            balance: "29500000000000000000000000",
-            percentage: 2.95,
-          },
-          {
-            address: "0x56D98724b31104d0e94ac21F9432F6D506E60724",
-            balance: "26500000000000000000000000",
-            percentage: 2.65,
-          },
-          {
-            address: "0x41c1E4089219F44168D8BF370bF96b0B4c2A2aB5",
-            balance: "16500000000000000000000000",
-            percentage: 1.65,
-          },
-        ];
+        // const items = [
+        //   {
+        //     address: "0xFD37BAD180E2F7C3Db4d84a8D36dF29161e40C89",
+        //     balance: "310000000000000000000000000",
+        //     percentage: 31.0,
+        //     tag: "PulseX LP",
+        //   },
+        //   {
+        //     address: "0x2E2BbF46EC6D6364e7A211B228123880ca5B928f",
+        //     balance: "215000000000000000000000000",
+        //     percentage: 21.5,
+        //     tag: "Treasury",
+        //   },
+        //   {
+        //     address: "0xA2Bc278C394Be34DcBD48B3C4273Ff40A25a75f9",
+        //     balance: "95000000000000000000000000",
+        //     percentage: 9.5,
+        //     tag: "Staking Contract",
+        //   },
+        //   {
+        //     address: "0x7243f5c1D05f9Aa5E4c898566e12c6b4F2aD2057",
+        //     balance: "85000000000000000000000000",
+        //     percentage: 8.5,
+        //     tag: "Deployer",
+        //   },
+        //   {
+        //     address: "0x3D1c58B6d4501E6B8B2DbA9a970ae282b93360F2",
+        //     balance: "62500000000000000000000000",
+        //     percentage: 6.25,
+        //   },
+        //   {
+        //     address: "0xF23568694253C917EAD985D78Fc12747F39F134B",
+        //     balance: "48000000000000000000000000",
+        //     percentage: 4.8,
+        //   },
+        //   {
+        //     address: "0x9126573D9c2E4c5129a23ab3585Ab0e9614Bd99E",
+        //     balance: "37000000000000000000000000",
+        //     percentage: 3.7,
+        //   },
+        //   {
+        //     address: "0x821863b64d3caA0B8C8fD43c0cC4DD2f72ff6c91",
+        //     balance: "29500000000000000000000000",
+        //     percentage: 2.95,
+        //   },
+        //   {
+        //     address: "0x56D98724b31104d0e94ac21F9432F6D506E60724",
+        //     balance: "26500000000000000000000000",
+        //     percentage: 2.65,
+        //   },
+        //   {
+        //     address: "0x41c1E4089219F44168D8BF370bF96b0B4c2A2aB5",
+        //     balance: "16500000000000000000000000",
+        //     percentage: 1.65,
+        //   },
+        // ];
 
-        const formattedHolders: TokenHolder[] = items.map((item) => ({
+        const formattedHolders: TokenHolder[] = tokenHolders.map((item) => ({
           address: item.address,
-          balance: item.balance,
+          balance: item.balance * 10 ** 18,
           percentage: item.percentage,
-          tag: item.tag,
+          tag:
+            item.address.toLowerCase() ===
+            "0x92f4634cec512d75a491d558b9a43322915631a1"
+              ? "PulseX LP"
+              : item.tag,
         }));
 
         setHolders(formattedHolders);
@@ -96,7 +104,7 @@ const TokenHolders: React.FC<TokenHoldersProps> = ({ isLoading }) => {
     };
 
     fetchHolders();
-  }, []);
+  }, [tokenHolders]);
 
   const handleSort = () => {
     setIsAnimating(true);
