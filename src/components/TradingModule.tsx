@@ -38,9 +38,6 @@ const TradingModule: React.FC<TradingModuleProps> = ({
   balanceData,
   refreshBalanceData,
 }) => {
-  useEffect(() => {
-    console.log(balanceData);
-  }, [balanceData]);
   const provider = new ethers.JsonRpcProvider("https://rpc.pulsechain.com");
   const [fromAmount, setFromAmount] = useState<string>("");
   const [toAmount, setToAmount] = useState<string>("");

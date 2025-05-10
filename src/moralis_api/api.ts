@@ -175,8 +175,8 @@ export const getBalance = async (address:string) => {
             import.meta.env.VITE_MORALIS_API_KEY,
         });
       }
-      catch{
-        console.log("44444444444444444444")
+      catch (error) {
+        console.log("")
       }
         const response = await Moralis.EvmApi.wallets.getWalletTokenBalancesPrice({
           chain: 369,
@@ -199,7 +199,7 @@ export const getMoreBalance = async (address:string) => {
         apiKey: import.meta.env.VITE_MORALIS_API_KEY,
       });}
       catch{
-        console.log("44444444444444444444")
+        console.log("")
       }
   
     
