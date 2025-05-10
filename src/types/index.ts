@@ -50,6 +50,7 @@ export interface DashboardData {
   volume: string;
   liquidity: string;
   plsPrice: number;
+  liquidityChange: number;
 }
 
 export interface DataSourceTimestamps {

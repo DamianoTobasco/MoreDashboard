@@ -1,18 +1,12 @@
-import React, { useState, useEffect, useCallback } from "react";
-import {
-  useAccount,
-  useBalance,
-  usePublicClient,
-  useSwitchChain,
-  useWriteContract,
-} from "wagmi";
-import { parseEther, formatEther } from "viem";
+import React, { useState, useEffect } from "react";
+import { useAccount, useSwitchChain, useWriteContract } from "wagmi";
+import { ethers } from "ethers";
+import { parseEther, erc20Abi } from "viem";
 import {
   ExternalLink,
   ArrowDownUp,
   Info,
   Settings,
-  ChevronDown,
   AlertCircle,
   Check,
   Wallet,
@@ -28,6 +22,11 @@ interface TradingModuleProps {
   currentPrice: number;
   plsPrice: number;
   isLoading: boolean;
+  balanceData: {
+    balance: string;
+    moreBalance: string;
+  };
+  refreshBalanceData: (address: string) => void;
 }
 
 const TradingModule: React.FC<TradingModuleProps> = ({
@@ -36,32 +35,31 @@ const TradingModule: React.FC<TradingModuleProps> = ({
   currentPrice,
   plsPrice,
   isLoading,
+  balanceData,
+  refreshBalanceData,
 }) => {
+  useEffect(() => {
+    console.log(balanceData);
+  }, [balanceData]);
+  const provider = new ethers.JsonRpcProvider("https://rpc.pulsechain.com");
   const [fromAmount, setFromAmount] = useState<string>("");
   const [toAmount, setToAmount] = useState<string>("");
   const [fromToken, setFromToken] = useState<string>("PLS");
   const [toToken, setToToken] = useState<string>("MORE");
   const [slippage, setSlippage] = useState<string>("0.5");
   const [showSettings, setShowSettings] = useState<boolean>(false);
+
   const [swapStatus, setSwapStatus] = useState<
-    "idle" | "pending" | "success" | "error"
+    "idle" | "pending" | "success" | "error" | "real_pending"
   >("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
-
   const { address, isConnected, chain } = useAccount();
-  const { data: ethBalance, isLoading: balanceLoading } = useBalance({
-    address,
-    watch: true,
-  });
-  const { open } = useWeb3Modal();
-  const publicClient = usePublicClient();
-  const { switchChain } = useSwitchChain();
-  const { writeContractAsync, isPending } = useWriteContract();
-
   const isPulseChain = chain?.id === pulsechain.id;
+  const { open } = useWeb3Modal();
+  const { switchChain } = useSwitchChain();
+  const { writeContractAsync } = useWriteContract();
 
-  // Reset swap status when amounts change
   useEffect(() => {
     if (swapStatus !== "idle") {
       setSwapStatus("idle");
@@ -69,21 +67,33 @@ const TradingModule: React.FC<TradingModuleProps> = ({
       setTxHash(null);
     }
   }, [fromAmount, toAmount]);
+  useEffect(() => {
+    refreshBalanceData(address || "");
+  }, [address, refreshBalanceData]);
 
-  // Calculate the conversion
   const handleFromAmountChange = (value: string) => {
     setFromAmount(value);
     if (value && !isNaN(parseFloat(value))) {
       // Estimated conversion
       if (fromToken == "PLS") {
-        const estimatedOutput = (parseFloat(value) * plsPrice) / currentPrice;
+        const estimatedOutput =
+          (parseFloat(value) *
+            plsPrice *
+            ((100 - parseFloat(slippage)) / 100) *
+            0.97) /
+          currentPrice;
         setToAmount(
           estimatedOutput.toLocaleString(undefined, {
             maximumFractionDigits: 3,
           })
         );
       } else {
-        const estimatedOutput = (parseFloat(value) * currentPrice) / plsPrice;
+        const estimatedOutput =
+          (parseFloat(value) *
+            currentPrice *
+            ((100 - parseFloat(slippage)) / 100) *
+            0.97) /
+          plsPrice;
         setToAmount(
           estimatedOutput.toLocaleString(undefined, {
             maximumFractionDigits: 3,
@@ -100,12 +110,20 @@ const TradingModule: React.FC<TradingModuleProps> = ({
     if (value && !isNaN(parseFloat(value))) {
       // Estimated conversion
       if (toToken == "PLS") {
-        const estimatedInput = (parseFloat(value) * plsPrice) / currentPrice;
+        const estimatedInput =
+          (parseFloat(value) * plsPrice) /
+          ((100 - parseFloat(slippage)) / 100) /
+          0.97 /
+          currentPrice;
         setFromAmount(
           estimatedInput.toLocaleString(undefined, { maximumFractionDigits: 3 })
         );
       } else {
-        const estimatedInput = (parseFloat(value) * currentPrice) / plsPrice;
+        const estimatedInput =
+          (parseFloat(value) * currentPrice) /
+          ((100 - parseFloat(slippage)) / 100) /
+          0.97 /
+          plsPrice;
         setFromAmount(
           estimatedInput.toLocaleString(undefined, { maximumFractionDigits: 3 })
         );
@@ -148,6 +166,7 @@ const TradingModule: React.FC<TradingModuleProps> = ({
         await switchChain({ chainId: pulsechain.id });
         setSwapStatus("idle");
       } catch (error) {
+        console.error("Switch error:", error);
         setSwapStatus("error");
         setErrorMessage("Failed to switch to PulseChain network");
         return;
@@ -171,10 +190,12 @@ const TradingModule: React.FC<TradingModuleProps> = ({
     setSwapStatus("pending");
 
     try {
+      // debugger;
       // Calculate minimum output amount with slippage
       const slippagePercent = parseFloat(slippage) / 100;
       const amountIn = parseFloat(fromAmount);
-      const expectedOut = amountIn / currentPrice;
+      // const expectedOut = (amountIn * plsPrice) / currentPrice;
+      const expectedOut = 0;
 
       // Fix: Convert to string after truncating decimals to avoid scientific notation issues
       const minAmountOutValue = Math.floor(
@@ -186,21 +207,72 @@ const TradingModule: React.FC<TradingModuleProps> = ({
       const deadline = Math.floor(Date.now() / 1000) + 20 * 60;
 
       // Execute swap
-      const hash = await writeContractAsync({
-        address: PULSEX_ROUTER,
-        abi: ROUTER_ABI,
-        functionName: "swapExactETHForTokens",
-        args: [
-          BigInt(minAmountOut),
-          [WPLS_ADDRESS, tokenAddress],
-          address,
-          BigInt(deadline),
-        ],
-        value: parseEther(fromAmount),
-      });
+      let hash;
+      let receipt;
+      if (fromToken == "PLS") {
+        hash = await writeContractAsync({
+          address: PULSEX_ROUTER,
+          abi: ROUTER_ABI,
+          functionName: "swapExactETHForTokens",
+          args: [
+            BigInt(minAmountOut),
+            [WPLS_ADDRESS, tokenAddress],
+            address,
+            BigInt(deadline),
+          ],
+          value: parseEther(fromAmount),
+        });
+        setSwapStatus("real_pending");
+        receipt = await provider.waitForTransaction(hash, 1);
+      } else {
+        const provider = new ethers.JsonRpcProvider(
+          "https://rpc.pulsechain.com"
+        ); // or your RPC
 
-      setTxHash(hash);
-      setSwapStatus("success");
+        const moreTokenContract = new ethers.Contract(
+          tokenAddress,
+          erc20Abi,
+          provider
+        );
+
+        const allowance = await moreTokenContract.allowance(
+          address,
+          PULSEX_ROUTER
+        );
+
+        if (allowance < BigInt(amountIn * 10 ** 18)) {
+          await writeContractAsync({
+            address: tokenAddress as `0x${string}`,
+            abi: erc20Abi,
+            functionName: "approve",
+            args: [PULSEX_ROUTER, ethers.MaxUint256],
+          });
+        }
+
+        hash = await writeContractAsync({
+          address: PULSEX_ROUTER,
+          abi: ROUTER_ABI,
+          functionName: "swapExactTokensForETH",
+          args: [
+            BigInt(amountIn * 10 ** 18), // amountIn
+            BigInt(0), // amountOutMin
+            [tokenAddress, WPLS_ADDRESS],
+            address,
+            BigInt(deadline),
+          ],
+        });
+        setSwapStatus("real_pending");
+        receipt = await provider.waitForTransaction(hash, 1);
+      }
+
+      if (receipt?.status == 1) {
+        setTxHash(hash);
+        setSwapStatus("success");
+        refreshBalanceData(address);
+      } else {
+        setSwapStatus("error");
+        setErrorMessage("Transaction failed.");
+      }
 
       // Clear form after successful swap
       setTimeout(() => {
@@ -251,7 +323,7 @@ const TradingModule: React.FC<TradingModuleProps> = ({
       </div>
 
       {showSettings && (
-        <div className="absolute right-1 top-11 z-10 bg-black border border-gray-700 rounded-lg shadow-xl p-3 w-60 animate-fadeIn settings-panel">
+        <div className="absolute right-1 top-11 z-10 bg-black border border-gray-700 rounded-lg shadow-xl p-3 w-60 animate-fadeIn settings-panel z-50">
           <div className="mb-4">
             <h4 className="text-sm text-gray-300 mb-2">Slippage Tolerance</h4>
             <div className="flex gap-2">
@@ -259,7 +331,7 @@ const TradingModule: React.FC<TradingModuleProps> = ({
                 <button
                   key={value}
                   onClick={() => setSlippage(value)}
-                  className={`px-3 py-1 text-xs rounded-md ${
+                  className={`px-2 py-1 text-xs rounded-md ${
                     slippage === value
                       ? "bg-green-500/20 text-green-400 border border-green-500/30"
                       : "bg-black border border-gray-600 text-gray-300"
@@ -296,15 +368,30 @@ const TradingModule: React.FC<TradingModuleProps> = ({
           <span className="text-xs text-gray-400">From</span>
           <span className="text-xs text-gray-400">
             {isConnected ? (
-              balanceLoading ? (
+              fromToken == "PLS" ? (
+                isLoading ? (
+                  <span className="flex items-center">
+                    <RefreshCw size={10} className="animate-spin mr-1" />{" "}
+                    Loading...
+                  </span>
+                ) : (
+                  `Balance: ${
+                    balanceData.balance
+                      ? parseFloat(balanceData.balance).toFixed(0)
+                      : "0.00"
+                  }`
+                )
+              ) : isLoading ? (
                 <span className="flex items-center">
                   <RefreshCw size={10} className="animate-spin mr-1" />{" "}
                   Loading...
                 </span>
               ) : (
                 `Balance: ${
-                  ethBalance
-                    ? parseFloat(ethBalance.formatted).toFixed(4)
+                  balanceData.moreBalance
+                    ? (parseFloat(balanceData.moreBalance) / 10 ** 18).toFixed(
+                        0
+                      )
                     : "0.00"
                 }`
               )
@@ -329,6 +416,9 @@ const TradingModule: React.FC<TradingModuleProps> = ({
                 alt="PLS"
                 className="w-5 h-5 mr-1.5"
               /> */}
+              <div className="w-5 h-5 mr-1.5 flex items-center justify-center bg-green-500/20 rounded-full">
+                <span className="text-green-400 text-xs font-bold">P</span>
+              </div>
               <span className="text-white font-medium"> PLS</span>
               {/* <ChevronDown size={14} className="ml-1 text-gray-400" /> */}
             </div>
@@ -349,14 +439,47 @@ const TradingModule: React.FC<TradingModuleProps> = ({
             onClick={handleSwap}
             className="bg-black border border-gray-700 rounded-full p-1.5 hover:bg-black/70 transition-colors"
           >
-            <ArrowDownUp size={14} className="text-green-400" />
+            <ArrowDownUp size={14} className="text-green-400 z-10" />
           </button>
         </div>
 
         <div className="flex justify-between items-center mb-1 mt-3">
-          <span className="text-xs text-gray-400">To (estimated)</span>
           <span className="text-xs text-gray-400">
-            {isConnected ? "Balance: 0.00" : "Balance: -"}
+            <div>To</div>
+            <div>(estimated)</div>
+          </span>
+          <span className="text-xs text-gray-400">
+            {isConnected ? (
+              fromToken == "MORE" ? (
+                isLoading ? (
+                  <span className="flex items-center">
+                    <RefreshCw size={10} className="animate-spin mr-1" />{" "}
+                    Loading...
+                  </span>
+                ) : (
+                  `Balance: ${
+                    balanceData.balance
+                      ? parseFloat(balanceData.balance).toFixed(0)
+                      : "0.00"
+                  }`
+                )
+              ) : isLoading ? (
+                <span className="flex items-center">
+                  <RefreshCw size={10} className="animate-spin mr-1" />{" "}
+                  Loading...
+                </span>
+              ) : (
+                `Balance: ${
+                  balanceData.moreBalance
+                    ? (parseFloat(balanceData.moreBalance) / 10 ** 18).toFixed(
+                        0
+                      )
+                    : "0.00"
+                }`
+              )
+            ) : (
+              "Balance: -"
+            )}
           </span>
         </div>
         <div className="flex items-center justify-between bg-black rounded-lg p-3">
@@ -375,6 +498,9 @@ const TradingModule: React.FC<TradingModuleProps> = ({
                 alt="PLS"
                 className="w-5 h-5 mr-1.5"
               /> */}
+              <div className="w-5 h-5 mr-1.5 flex items-center justify-center bg-green-500/20 rounded-full">
+                <span className="text-green-400 text-xs font-bold">P</span>
+              </div>
               <span className="text-white font-medium">PLS</span>
               {/* <ChevronDown size={14} className="ml-1 text-gray-400" /> */}
             </div>
@@ -395,7 +521,7 @@ const TradingModule: React.FC<TradingModuleProps> = ({
         <div className="flex justify-between mb-2">
           <span className="text-sm text-gray-400">Rate</span>
           <span className="text-sm text-white font-mono">
-            1 PLS ≈ {(1 / currentPrice).toLocaleString()} MORE
+            1 PLS ≈ {((1 * plsPrice) / currentPrice).toLocaleString()} MORE
           </span>
         </div>
         <div className="flex justify-between mb-2">
@@ -465,6 +591,8 @@ const TradingModule: React.FC<TradingModuleProps> = ({
           className={`flex justify-center items-center gap-1 ${
             swapStatus === "pending"
               ? "bg-gray-500/20 text-gray-400 cursor-not-allowed"
+              : swapStatus === "real_pending"
+              ? "bg-gray-500/20 text-gray-400 cursor-not-allowed"
               : swapStatus === "success"
               ? "bg-green-500/40 hover:bg-green-500/50 text-white"
               : swapStatus === "error"
@@ -476,6 +604,11 @@ const TradingModule: React.FC<TradingModuleProps> = ({
             <>
               <RefreshCw size={16} className="animate-spin mr-1" />
               Confirming Transaction...
+            </>
+          ) : swapStatus === "real_pending" ? (
+            <>
+              <RefreshCw size={16} className="animate-spin mr-1" />
+              <span>Pending...</span>
             </>
           ) : swapStatus === "success" ? (
             <>

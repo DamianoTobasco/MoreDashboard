@@ -15,7 +15,14 @@ import { formatCurrency, formatLargeNumber } from "../utils/formatters";
 import { ShinyText } from "./ui/shiny-text";
 
 const Dashboard: React.FC = () => {
-  const { data, loading, refreshTimestamps, refreshData } = useDashboardData();
+  const {
+    data,
+    loading,
+    balanceData,
+    refreshTimestamps,
+    refreshData,
+    refreshBalanceData,
+  } = useDashboardData();
   useEffect(() => {
     handleRefresh();
   }, []);
@@ -48,12 +55,14 @@ const Dashboard: React.FC = () => {
         </div>
         <div className="mt-4 sm:mt-0 flex items-center gap-4">
           <WalletConnect />
-          <div className="inline-flex items-center justify-center px-3 py-3 rounded-lg min-w-[176px] bg-custom-green/10 border border-custom-green/20 text-custom-green hover:bg-custom-green/20 duration-200">
+          <div
+            onClick={handleRefresh}
+            className="hover:cursor-pointer inline-flex items-center justify-center px-3 py-3 rounded-lg min-w-[176px] bg-custom-green/10 border border-custom-green/20 text-custom-green hover:bg-custom-green/20 duration-200"
+          >
             <span className="animate-pulse mr-2 w-2 h-2 rounded-full bg-custom-green"></span>
             <button
-              onClick={handleRefresh}
               disabled={loading}
-              className="flex items-center justify-center"
+              className="hover:cursor-pointer flex items-center justify-center"
             >
               {loading ? "Refreshing..." : "Refresh"}
             </button>
@@ -65,8 +74,11 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 mb-6">
         <KpiCard
           title="Current Price"
-          value={formatCurrency(data.price)}
-          change={{ value: 2.4, isPositive: true }}
+          value={formatCurrency(data.price.usdPrice)}
+          change={{
+            value: data.price["24hrPercentChange"],
+            isPositive: data.price["24hrPercentChange"] > 0,
+          }}
           updated={refreshTimestamps.price}
           isLoading={loading}
           icon={<DollarSign size={18} />}
@@ -82,7 +94,7 @@ const Dashboard: React.FC = () => {
         <KpiCard
           title="Holders"
           value={formatLargeNumber(data.holders)}
-          change={{ value: 0.8, isPositive: true }}
+          change={{ value: 0.3, isPositive: true }}
           updated={refreshTimestamps.holders}
           isLoading={loading}
           icon={<Users size={18} />}
@@ -106,10 +118,12 @@ const Dashboard: React.FC = () => {
             >
               <TradingModule
                 tokenSymbol="MORE"
-                tokenAddress="0x88dF7BEdc5969371A2C9A74690cBB3668061E1E9"
-                currentPrice={data.price}
+                tokenAddress={import.meta.env.VITE_TOKEN_ADDRESS}
+                currentPrice={data.price.usdPrice}
                 plsPrice={data.plsPrice}
                 isLoading={loading}
+                balanceData={balanceData}
+                refreshBalanceData={refreshBalanceData}
               />
             </GlassPanel>
           </div>
@@ -146,35 +160,41 @@ const Dashboard: React.FC = () => {
                 </div>
               ) : (
                 <>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid  gap-4">
                     <div className="border-r border-gray-800 pr-4">
                       <h3 className="text-sm text-gray-400 mb-2">24h Volume</h3>
                       <div className="bg-gradient-to-r from-custom-green/20 to-transparent p-2 rounded-lg">
                         <p className="text-xl font-bold text-white">
                           {formatCurrency(data.volume)}
                         </p>
-                        <div className="flex items-center mt-1">
+                        {/* <div className="flex items-center mt-1">
                           <span className="text-xs bg-custom-green/20 text-custom-green px-2 py-0.5 rounded-full">
                             +12.4%
                           </span>
-                        </div>
+                        </div> */}
                       </div>
                     </div>
-                    <div>
+                    <div className="border-r border-gray-800 pr-4">
                       <h3 className="text-sm text-gray-400 mb-2">Liquidity</h3>
                       <div className="bg-gradient-to-r from-custom-green/20 to-transparent p-2 rounded-lg">
                         <p className="text-xl font-bold text-white">
                           {formatCurrency(data.liquidity)}
                         </p>
                         <div className="flex items-center mt-1">
-                          <span className="text-xs bg-custom-green/20 text-custom-green px-2 py-0.5 rounded-full">
-                            +0.8%
-                          </span>
+                          {data.liquidityChange > 0 ? (
+                            <span className="text-xs bg-custom-green/20 text-custom-green px-2 py-0.5 rounded-full">
+                              {data.liquidityChange.toFixed(2)}%
+                            </span>
+                          ) : (
+                            <span className="text-xs bg-red-500/20 text-red-500 px-2 py-0.5 rounded-full">
+                              {data.liquidityChange.toFixed(2)}%
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
                   </div>
-
+                  {/* 
                   <div className="mt-4">
                     <h3 className="text-sm text-gray-400 mb-3 flex items-center">
                       <span className="inline-block w-1 h-4 bg-custom-green rounded mr-2"></span>
@@ -182,7 +202,7 @@ const Dashboard: React.FC = () => {
                     </h3>
                     <div className="bg-black/30 p-3 rounded-lg border border-gray-800/30">
                       <div className="grid grid-cols-2 gap-3">
-                        <div>
+                        {/* <div>
                           <p className="text-xs text-gray-400 mb-1">
                             All-Time High
                           </p>
@@ -197,10 +217,10 @@ const Dashboard: React.FC = () => {
                           <p className="text-sm text-white font-semibold">
                             {formatCurrency(0.0000168)}
                           </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                        </div> */}
+                  {/* </div> */}
+                  {/* </div> */}
+                  {/* </div> */}
                 </>
               )}
             </GlassPanel>

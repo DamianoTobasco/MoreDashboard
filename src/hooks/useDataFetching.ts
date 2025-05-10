@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { DashboardData, DataSourceTimestamps} from '../types';
-import { getMarketCap, getTokenPrice, getRecentTransfers, getTokenHolders, getHoldersCount, getBurnData, getTokenVolumeAndLiquidity, getWpslPrice } from '../moralis_api/api';
+import { getMarketCap, getTokenPrice, getRecentTransfers, getTokenHolders, getHoldersCount, getBurnData, getTokenVolumeAndLiquidity, getWpslPrice, getLiquidityChange, getBalance, getMoreBalance } from '../moralis_api/api';
 
 import Moralis from 'moralis';
 
@@ -34,7 +34,13 @@ const useDashboardData = () => {
     burnPct: "0",
     volume: "0",
     liquidity: "0",
-    plsPrice: 0
+    plsPrice: 0,
+    liquidityChange: 0
+  });
+
+  const [balanceData, setBalanceData] = useState({
+    balance: "0",
+    moreBalance: "0"
   });
   const[moralisInitialized, setMoralisInitialized] = useState<boolean>(false);
   useEffect(() => {
@@ -69,120 +75,23 @@ const useDashboardData = () => {
     plsPrice: 0
   });
 
-//   // Fetch burn data from blockchain
-//   const fetchBurnData = useCallback(async () => {
-//     try {
-//       // const burnedRawParams = {
-//       //   to: TOKEN_ADDRESS,
-//       //   data: `0x70a08231000000000000000000000000${BURN_ADDRESS.substring(2).padStart(40, '0')}`
-//       // };
+  const refreshBalanceData = useCallback(async (address:string) => {
+    setLoading(true);
+    try {
+      const [balance, moreBalance] = await Promise.all([getBalance(address), getMoreBalance(address)])
+      setBalanceData({
+        balance: balance,
+        moreBalance: moreBalance || "0" 
+      })
       
-//       // const supplyRawParams = {
-//       //   to: TOKEN_ADDRESS,
-//       //   data: "0x18160ddd"
-//       // };
-      
-//       // Simulate RPC calls with mock data
-//       const burnData = await getBurnData();
-//       const burnedRawResponse = { 
-//         result: '0x' + BigInt(burnData.balance).toString(16)
-//       };
-//       const supplyRawResponse = { 
-//         result: '0x' + BigInt(burnData.total_supply).toString(16) 
-//       };
-      
-//       const burnedRaw = burnedRawResponse.result;
-//       const supplyRaw = supplyRawResponse.result;
-      
-//       const burnPct = ((parseInt(burnedRaw, 16) / parseInt(supplyRaw, 16)) * 100).toFixed(1);
-//       const burnedAmount = parseInt(burnedRaw, 16).toString();
-//       const totalSupply = parseInt(supplyRaw, 16).toString();
-      
-//       return { 
-//         burnAddress: BURN_ADDRESS,
-//         burnedAmount,
-//         totalSupply,
-//         burnPct
-//       };
-//     } catch (error) {
-//       console.error('Error fetching burn data:', error);
-//       return { 
-//         burnAddress: mockBurnAddress,
-//         burnedAmount: mockBurnedAmount,
-//         burnPct: "90.0"
-//       };
-//     }
-//   }, []);
-
-//   // Fetch price data
-//   const fetchPriceData = useCallback(async () => {
-//     try {
-//       const updatedPrice = await getTokenPrice();
-//       const marketCap = await getMarketCap();
-//       const recentTransfers = await getRecentTransfers();
-      
-//       // Transform the Moralis transfer data to match TokenTransfer type
-//       const formattedTransfers = recentTransfers.result.map(transfer => ({
-//         blockNumber: transfer.block_number,
-//         timeStamp: `${Math.floor(new Date(transfer.block_timestamp).getTime() / 1000)}`,
-//         hash: transfer.transaction_hash,
-//         from: transfer.from_address,
-//         to: transfer.to_address,
-//         value: transfer.value,
-//         tokenName: transfer.token_name,
-//         tokenSymbol: transfer.token_symbol,
-//         tokenDecimal: transfer.token_decimals,
-//         contractAddress: TOKEN_ADDRESS // Add missing required field
-//       }));
-
-//       setData(prev => ({ 
-//         ...prev, 
-//         price: updatedPrice,
-//         marketCap,
-//         transfers: formattedTransfers,
-//       }));
-//       setRefreshTimestamps(prev => ({ ...prev, price: Date.now() }));
-//     } catch (error) {
-//       console.error('Error fetching price:', error);
-//     }
-//   }, [data.supply]);
-
-//   // Fetch market data
-//   const fetchMarketData = useCallback(async () => {
-//     try {
-//       const now = Date.now();
-//       setRefreshTimestamps(prev => ({ 
-//         ...prev, 
-//         holders: now,
-//         // transfers: now
-//       }));
-      
-//       // Update holders count with small random increases
-//       // const holderIncrease = Math.floor(Math.random() * 3);
-
-//       const topTokenHolders = await getTokenHolders();
-//       const formattedHolders = topTokenHolders.map(holder => ({
-//         address: holder.owner_address,
-//         balance: holder.balance_formatted,
-//         percentage: holder.percentage_relative_to_total_supply,
-//         tag: "testing"
-//       }));
-
-//       const holdersCount = await getHoldersCount();
-
-      
-//       setData(prev => ({ 
-//         ...prev,
-//         holders: holdersCount,
-//         tokenHolders: formattedHolders,
-        
-//       }));
-//     } catch (error) {
-//       console.error('Error fetching market data:', error);
-//     }
-//   }, []);
-
-  // Combine all fetch functions into one refresh function
+    } catch (error) {
+      console.error('Error refreshing balance data:', error);
+    }
+    finally{
+      setLoading(false);
+    }
+    
+  }, []);
   const refreshAllData = useCallback(async () => {
     try {
       setLoading(true);
@@ -196,7 +105,8 @@ const useDashboardData = () => {
         holdersCountData,
         burnData,
         volumeAndLiquidityData,
-        plsPriceData
+        plsPriceData,
+        liquidityChange
       ] = await Promise.all([
         getTokenPrice(),
         getMarketCap(),
@@ -205,7 +115,8 @@ const useDashboardData = () => {
         getHoldersCount(),
         getBurnData(),
         getTokenVolumeAndLiquidity(),
-        getWpslPrice()
+        getWpslPrice(),
+        getLiquidityChange()
       ]);
 
       // Transform transfers data
@@ -248,6 +159,7 @@ const useDashboardData = () => {
         volume: volumeAndLiquidityData[1],
         liquidity: volumeAndLiquidityData[0],
         plsPrice: plsPriceData,
+        liquidityChange: liquidityChange
       }));
 
       // Update timestamps except for candles
@@ -273,26 +185,7 @@ const useDashboardData = () => {
   // // Initialize data and set up polling
   useEffect(() => {
     const initializeData = async () => {
-      try {
-      //   setLoading(true);
-      //   const burnData = await fetchBurnData();
-      //   const totalTokens = parseFloat(mockSupply) / 10 ** 18;
-      //   const initialMarketCap = totalTokens * mockPrice;
-        
-      //   setData({
-      //     meta: mockMeta,
-      //     supply: mockSupply,
-      //     price: mockPrice,
-      //     holders: mockHolders,
-      //     transfers: mockTransfers,
-      //     candles: mockCandles,
-      //     marketCap: initialMarketCap,
-      //     tokenHolders: [],
-      //     burnAddress: burnData.burnAddress,
-      //     burnedAmount: burnData.burnedAmount,
-      //     burnPct: burnData.burnPct
-      //   });
-        
+      try {   
         const now = Date.now();
         setRefreshTimestamps({
           meta: now,
@@ -313,24 +206,15 @@ const useDashboardData = () => {
     };
 
     initializeData();
-
-    // Set up polling intervals
-    // const priceInterval = setInterval(fetchPriceData, INTERVALS.PRICE);
-    // const marketDataInterval = setInterval(fetchMarketData, INTERVALS.MARKET_DATA);
-    // const burnInfoInterval = setInterval(fetchBurnData, INTERVALS.BURN_INFO);
-
-  //   return () => {
-  //     clearInterval(priceInterval);
-  //     clearInterval(marketDataInterval);
-  //     clearInterval(burnInfoInterval);
-  //   };
-  }, [refreshAllData]);
+  }, [refreshAllData, refreshBalanceData]);
 
   return {
     data,
     loading,
     error,
+    balanceData,
     refreshTimestamps,
+    refreshBalanceData,
     refreshData: refreshAllData
   };
 };
