@@ -43,7 +43,7 @@ export interface MarketCapData {
 export interface DashboardData {
   meta: TokenMetadata | null;
   supply: string;
-  price: number;
+  price: any;
   holders: number;
   transfers: TokenTransfer[];
   candles: CandleData[];
@@ -71,4 +71,11 @@ export interface DataSourceTimestamps {
   volume: number;
   liquidity: number;
   plsPrice: number;
+}
+
+// Add TradingView to Window interface
+declare global {
+  interface Window {
+    TradingView: any;
+  }
 }

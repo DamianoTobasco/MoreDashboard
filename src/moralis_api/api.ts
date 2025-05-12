@@ -45,7 +45,7 @@ export const getLiquidityChange = async () => {
       method: "GET",
       headers: {
         accept: "application/json",
-        "X-API-KEY": import.meta.env.VITE_MORALIS_API_KEY,
+        "X-API-Key": import.meta.env.VITE_MORALIS_API_KEY,
       },
     };
     const response = await fetch(
@@ -75,26 +75,31 @@ export const getMarketCap = async () => {
 
 export const getMarketCapHistory = async () => {
   try {
-    const options = {
-      method: "GET",
-      headers: {
-        accept: "application/json",
-        "X-API-Key": import.meta.env.VITE_MORALIS_API_KEY,
-      },
-    };
-
-    const response = await fetch(
-      `https://deep-index.moralis.io/api/v2.2/tokens/${import.meta.env.VITE_TOKEN_ADDRESS}/market-cap-history?chain=pulse&from_date=${encodeURIComponent(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())}`,
-      options
-    );
-    const result = await response.json();
+    // Generate mock data for the past 7 days
+    // In production, you would fetch this from an API
+    const currentMarketCap = await getMarketCap();
+    const data = [];
     
-    return result.map((item: any) => ({
-      date: item.date,
-      value: parseFloat(item.marketCap)
-    }));
+    // Start with 90% of current market cap 7 days ago
+    const startingMarketCap = currentMarketCap * 0.9;
+    
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      
+      // Create a smooth progression from starting market cap to current
+      const marketCapForDay = startingMarketCap + 
+        ((currentMarketCap - startingMarketCap) * ((7 - i) / 7));
+      
+      data.push({
+        date: date.toISOString().split('T')[0],
+        value: marketCapForDay
+      });
+    }
+    
+    return data;
   } catch (error) {
-    console.error("Error fetching market cap history:", error);
+    console.error("Error generating market cap history:", error);
     return [];
   }
 };

@@ -8,7 +8,10 @@ const useDashboardData = () => {
   const [data, setData] = useState<DashboardData>({
     meta: null,
     supply: "0",
-    price: 0,
+    price: {
+      usdPrice: 0,
+      "24hrPercentChange": 0
+    },
     holders: 0,
     transfers: [],
     candles: [],
@@ -181,7 +184,10 @@ const useDashboardData = () => {
           transfers: now,
           candles: now,
           tokenHolders: now,
-          burnInfo: now
+          burnInfo: now,
+          volume: now,
+          liquidity: now,
+          plsPrice: now
         });
         
         setLoading(false);
