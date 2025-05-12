@@ -10,6 +10,7 @@ import BurnInfo from "./BurnInfo";
 import WalletConnect from "./WalletConnect";
 import HoldersChart from "./HoldersChart";
 import LiquidityChart from "./LiquidityChart";
+import MarketCapChart from "./MarketCapChart";
 import useDashboardData from "../hooks/useDataFetching";
 import { formatCurrency, formatLargeNumber } from "../utils/formatters";
 import { ShinyText } from "./ui/shiny-text";
@@ -132,7 +133,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Charts Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <GlassPanel title="Holders Growth">
             <HoldersChart isLoading={loading} holders={data.holders} />
           </GlassPanel>
@@ -142,6 +143,13 @@ const Dashboard: React.FC = () => {
               isLoading={loading} 
               liquidity={data.liquidity} 
               liquidityChange={data.liquidityChange}
+            />
+          </GlassPanel>
+
+          <GlassPanel title="Market Cap Growth">
+            <MarketCapChart 
+              isLoading={loading} 
+              marketCap={data.marketCap}
             />
           </GlassPanel>
         </div>
