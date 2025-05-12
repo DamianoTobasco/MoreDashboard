@@ -1,23 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { DashboardData, DataSourceTimestamps} from '../types';
-import { getMarketCap, getTokenPrice, getRecentTransfers, getTokenHolders, getHoldersCount, getBurnData, getTokenVolumeAndLiquidity, getWpslPrice, getLiquidityChange, getBalance, getMoreBalance } from '../moralis_api/api';
+import { getMarketCap, getTokenPrice, getRecentTransfers, getTokenHolders, getHoldersCount, getBurnData, getTokenVolumeAndLiquidity, getWpslPrice, getLiquidityChange, getBalance, getMoreBalance, getMarketCapHistory } from '../moralis_api/api';
 
 import Moralis from 'moralis';
-
-// RPC configurations
-// const PULSECHAIN_RPC = 'https://rpc.pulsechain.com';
-// const TOKEN_ADDRESS = '0x88dF7BEdc5969371A2C9A74690cBB3668061E1E9';
-// const BURN_ADDRESS = '0x000000000000000000000000000000000000dEaD';
-
-// // Polling intervals (in milliseconds)
-// const INTERVALS = {
-//   PRICE: 10000,       // 1 minute
-//   MARKET_DATA: 10000, // 1 minute
-//   TRANSFERS: 60000,   // 1 minute
-//   HOLDERS: 300000,    // 5 minutes
-//   BURN_INFO: 300000,  // 5 minutes
-//   META: 3600000       // 1 hour
-// };
 
 const useDashboardData = () => {
   const [data, setData] = useState<DashboardData>({
@@ -28,6 +13,7 @@ const useDashboardData = () => {
     transfers: [],
     candles: [],
     marketCap: 0,
+    marketCapHistory: [],
     tokenHolders: [],
     burnAddress: "",
     burnedAmount: "0",
@@ -96,7 +82,7 @@ const useDashboardData = () => {
     try {
       setLoading(true);
       
-      // Fetch all data in parallel, excluding candles data
+      // Fetch all data in parallel, including market cap history
       const [
         priceData,
         marketCapData,
@@ -106,7 +92,8 @@ const useDashboardData = () => {
         burnData,
         volumeAndLiquidityData,
         plsPriceData,
-        liquidityChange
+        liquidityChange,
+        marketCapHistory
       ] = await Promise.all([
         getTokenPrice(),
         getMarketCap(),
@@ -116,7 +103,8 @@ const useDashboardData = () => {
         getBurnData(),
         getTokenVolumeAndLiquidity(),
         getWpslPrice(),
-        getLiquidityChange()
+        getLiquidityChange(),
+        getMarketCapHistory()
       ]);
 
       // Transform transfers data
@@ -142,19 +130,19 @@ const useDashboardData = () => {
       }));
 
       // Calculate burn percentage
-      // const burnPct = ((parseInt(burnData.balance, 16) / parseInt(burnData.total_supply, 16)) * 100).toFixed(1);
       const burnPct = (burnData.balance / burnData.total_supply) * 100;
    
-      // Update all data at once, preserving existing candles data
+      // Update all data at once
       setData(prev => ({
         ...prev,
         price: priceData,
         marketCap: marketCapData,
+        marketCapHistory,
         transfers: formattedTransfers,
         holders: holdersCountData,
         tokenHolders: formattedHolders,
         burnedAmount: burnData.balance,
-        supply:burnData.total_supply,
+        supply: burnData.total_supply,
         burnPct,
         volume: volumeAndLiquidityData[1],
         liquidity: volumeAndLiquidityData[0],
@@ -162,7 +150,7 @@ const useDashboardData = () => {
         liquidityChange: liquidityChange
       }));
 
-      // Update timestamps except for candles
+      // Update timestamps
       const now = Date.now();
       setRefreshTimestamps(prev => ({
         ...prev,
@@ -171,7 +159,6 @@ const useDashboardData = () => {
         transfers: now,
         holders: now,
         burnInfo: now,
-        // candles: prev.candles  // Keep existing candles timestamp
       }));
 
     } catch (error) {
@@ -182,7 +169,6 @@ const useDashboardData = () => {
     }
   }, []);
 
-  // // Initialize data and set up polling
   useEffect(() => {
     const initializeData = async () => {
       try {   
