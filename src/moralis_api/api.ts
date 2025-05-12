@@ -1,8 +1,5 @@
 import Moralis from "moralis";
 
-
-
-
 export const getTokenPrice = async() => {
   try {
     
@@ -22,23 +19,32 @@ export const getTokenPrice = async() => {
 export const getTokenVolumeAndLiquidity = async () => {
   try {
     const options = {
-    method: "GET",
-    headers: {
-      accept: "application/json",
-      "X-API-Key":
-        import.meta.env.VITE_MORALIS_API_KEY,
-    },
-  };
+      method: "GET",
+      headers: {
+        accept: "application/json",
+        "X-API-Key": import.meta.env.VITE_MORALIS_API_KEY,
+      },
+    };
 
-  const response = await fetch(
-    `https://deep-index.moralis.io/api/v2.2/tokens/${import.meta.env.VITE_TOKEN_ADDRESS}/analytics?chain=pulse`,
-    options
-  );
-  const result = await response.json();
-  let volumeAndLiquidity = []
-  volumeAndLiquidity.push(result?.totalLiquidityUsd)
-  volumeAndLiquidity.push(result?.totalSellVolume["24h"] + result?.totalBuyVolume["24h"])
-  return volumeAndLiquidity
+    // Get current liquidity data
+    const response = await fetch(
+      `https://deep-index.moralis.io/api/v2.2/pairs/${import.meta.env.VITE_PulseX_MORE_WPLS_LP_ADDRESS}/stats?chain=pulse`,
+      options
+    );
+    const result = await response.json();
+
+    // Get historical liquidity data for the past 7 days
+    const historicalResponse = await fetch(
+      `https://deep-index.moralis.io/api/v2.2/pairs/${import.meta.env.VITE_PulseX_MORE_WPLS_LP_ADDRESS}/liquidity?chain=pulse&from_date=${new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()}&to_date=${new Date().toISOString()}`,
+      options
+    );
+    const historicalData = await historicalResponse.json();
+
+    let volumeAndLiquidity = [];
+    volumeAndLiquidity.push(result?.totalLiquidityUsd);
+    volumeAndLiquidity.push(result?.totalSellVolume["24h"] + result?.totalBuyVolume["24h"]);
+    volumeAndLiquidity.push(historicalData); // Add historical data
+    return volumeAndLiquidity;
   } catch (error) {
     console.error("Error fetching token analytics:", error);
     throw error;
@@ -51,8 +57,7 @@ export const getLiquidityChange = async () => {
       method: "GET",
       headers: {
         accept: "application/json",
-        "X-API-Key":
-          import.meta.env.VITE_MORALIS_API_KEY,
+        "X-API-Key": import.meta.env.VITE_MORALIS_API_KEY,
       },
     };
     const response = await fetch(
@@ -171,8 +176,7 @@ export const getBalance = async (address:string) => {
   try {
       try{
       await Moralis.start({
-          apiKey:
-            import.meta.env.VITE_MORALIS_API_KEY,
+          apiKey: import.meta.env.VITE_MORALIS_API_KEY,
         });
       }
       catch (error) {
@@ -217,5 +221,3 @@ export const getMoreBalance = async (address:string) => {
       console.error(e);
     }
 }
-
-
