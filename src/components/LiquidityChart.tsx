@@ -36,15 +36,18 @@ const LiquidityChart: React.FC<LiquidityChartProps> = ({
   liquidity,
   liquidityChange 
 }) => {
-  const generateChartData = () => {
+  // Generate mock data for the past 7 days
+  const generateMockData = () => {
     const data = [];
-    const currentLiquidity = parseFloat(liquidity);
+    // Use half of total liquidity to represent buy-side only
+    const currentLiquidity = parseFloat(liquidity) / 2;
     const startLiquidity = currentLiquidity / (1 + (liquidityChange / 100));
     
     for (let i = 6; i >= 0; i--) {
       const date = subDays(new Date(), i);
-      const progressionFactor = (7 - i) / 7;
-      const dailyLiquidity = startLiquidity + ((currentLiquidity - startLiquidity) * progressionFactor);
+      // Create a smooth progression from start to current liquidity
+      const dailyLiquidity = startLiquidity + 
+        ((currentLiquidity - startLiquidity) * ((7 - i) / 7));
       
       data.push({
         date: format(date, 'MMM dd'),
@@ -54,15 +57,15 @@ const LiquidityChart: React.FC<LiquidityChartProps> = ({
     return data;
   };
 
-  const chartData = generateChartData();
+  const mockData = generateMockData();
 
   const data = {
-    labels: chartData.map(d => d.date),
+    labels: mockData.map(d => d.date),
     datasets: [
       {
         fill: true,
         label: 'Buy-Side PLS Liquidity',
-        data: chartData.map(d => d.liquidity),
+        data: mockData.map(d => d.liquidity),
         borderColor: '#0DFF00',
         backgroundColor: 'rgba(13, 255, 0, 0.1)',
         tension: 0.4,
