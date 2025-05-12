@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -36,36 +36,41 @@ const LiquidityChart: React.FC<LiquidityChartProps> = ({
   liquidity,
   liquidityChange 
 }) => {
-  // Generate mock data for the past 7 days
-  const generateMockData = () => {
-    const data = [];
-    // Use half of total liquidity to represent buy-side only
-    const currentLiquidity = parseFloat(liquidity) / 2;
-    const startLiquidity = currentLiquidity / (1 + (liquidityChange / 100));
-    
-    for (let i = 6; i >= 0; i--) {
-      const date = subDays(new Date(), i);
-      // Create a smooth progression from start to current liquidity
-      const dailyLiquidity = startLiquidity + 
-        ((currentLiquidity - startLiquidity) * ((7 - i) / 7));
-      
-      data.push({
-        date: format(date, 'MMM dd'),
-        liquidity: dailyLiquidity,
-      });
-    }
-    return data;
-  };
+  const [historicalData, setHistoricalData] = useState<any[]>([]);
 
-  const mockData = generateMockData();
+  useEffect(() => {
+    const fetchHistoricalData = async () => {
+      try {
+        const now = Math.floor(Date.now() / 1000);
+        const sevenDaysAgo = now - (7 * 86400);
+        
+        const response = await fetch(
+          `https://deep-index.moralis.io/api/v2.2/pairs/${import.meta.env.VITE_PulseX_MORE_WPLS_LP_ADDRESS}/reserves/historic?chain=pulse&from_date=${sevenDaysAgo}&to_date=${now}`,
+          {
+            headers: {
+              accept: "application/json",
+              "X-API-Key": import.meta.env.VITE_MORALIS_API_KEY,
+            },
+          }
+        );
+        
+        const result = await response.json();
+        setHistoricalData(result);
+      } catch (error) {
+        console.error("Error fetching historical liquidity:", error);
+      }
+    };
+
+    fetchHistoricalData();
+  }, []);
 
   const data = {
-    labels: mockData.map(d => d.date),
+    labels: historicalData.map(d => format(new Date(d.timestamp), 'MMM dd')),
     datasets: [
       {
         fill: true,
         label: 'Buy-Side PLS Liquidity',
-        data: mockData.map(d => d.liquidity),
+        data: historicalData.map(d => parseFloat(d.reserve1)),
         borderColor: '#0DFF00',
         backgroundColor: 'rgba(13, 255, 0, 0.1)',
         tension: 0.4,
@@ -92,7 +97,7 @@ const LiquidityChart: React.FC<LiquidityChartProps> = ({
         displayColors: false,
         callbacks: {
           label: (context: any) => {
-            return `Buy-Side Liquidity: ${formatCurrency(context.parsed.y)}`;
+            return `Buy-Side PLS: ${context.parsed.y.toLocaleString()} PLS`;
           },
         },
       },
@@ -120,13 +125,13 @@ const LiquidityChart: React.FC<LiquidityChartProps> = ({
           font: {
             size: 10,
           },
-          callback: (value: number) => formatCurrency(value),
+          callback: (value: number) => `${value.toLocaleString()} PLS`,
         },
       },
     },
   };
 
-  if (isLoading) {
+  if (isLoading || historicalData.length === 0) {
     return (
       <div className="h-[200px] animate-pulse bg-black/40 rounded-lg"></div>
     );
