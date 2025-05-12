@@ -135,7 +135,7 @@ const Dashboard: React.FC = () => {
           className="bg-gradient-to-br from-black/70 to-red-950/30 hover:border-red-500/30"
         >
           <BurnInfo
-            burnAddress={data.burnAddress || ""}
+            burnAddress={import.meta.env.VITE_BURN_ADDRESS}
             burnedAmount={data.burnedAmount || "0"}
             totalSupply={data.supply}
             isLoading={loading}
