@@ -36,7 +36,6 @@ const LiquidityChart: React.FC<LiquidityChartProps> = ({
   liquidity,
   liquidityChange 
 }) => {
-  // Process historical liquidity data
   const generateChartData = () => {
     const data = [];
     const currentLiquidity = parseFloat(liquidity);
@@ -44,9 +43,8 @@ const LiquidityChart: React.FC<LiquidityChartProps> = ({
     
     for (let i = 6; i >= 0; i--) {
       const date = subDays(new Date(), i);
-      // Calculate daily liquidity based on the change percentage
-      const dailyChange = (liquidityChange / 7) * (7 - i);
-      const dailyLiquidity = startLiquidity * (1 + (dailyChange / 100));
+      const progressionFactor = (7 - i) / 7;
+      const dailyLiquidity = startLiquidity + ((currentLiquidity - startLiquidity) * progressionFactor);
       
       data.push({
         date: format(date, 'MMM dd'),
