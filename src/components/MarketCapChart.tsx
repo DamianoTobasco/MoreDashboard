@@ -115,3 +115,5 @@ const MarketCapChart: React.FC<MarketCapChartProps> = ({
     </div>
   );
 };
+
+export default MarketCapChart
