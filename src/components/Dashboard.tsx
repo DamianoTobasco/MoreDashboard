@@ -4,14 +4,13 @@ import GlassPanel from "./ui/GlassPanel";
 import KpiCard from "./ui/KpiCard";
 import PriceChart from "./PriceChart";
 import TransfersTable from "./TransfersTable";
-// import TokenInfo from "./TokenInfo";
 import TokenHolders from "./TokenHolders";
 import TradingModule from "./TradingModule";
 import BurnInfo from "./BurnInfo";
 import WalletConnect from "./WalletConnect";
+import HoldersChart from "./HoldersChart";
 import useDashboardData from "../hooks/useDataFetching";
 import { formatCurrency, formatLargeNumber } from "../utils/formatters";
-// import { ButtonColorful } from "./ui/button-colorful";
 import { ShinyText } from "./ui/shiny-text";
 
 const Dashboard: React.FC = () => {
@@ -23,9 +22,11 @@ const Dashboard: React.FC = () => {
     refreshData,
     refreshBalanceData,
   } = useDashboardData();
+  
   useEffect(() => {
     handleRefresh();
   }, []);
+  
   const handleRefresh = async () => {
     await refreshData();
   };
@@ -129,6 +130,11 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
+        {/* Holders Chart */}
+        <GlassPanel title="Holders Growth">
+          <HoldersChart isLoading={loading} holders={data.holders} />
+        </GlassPanel>
+
         {/* Burn Info */}
         <GlassPanel
           title="Token Burn Statistics"
@@ -160,18 +166,13 @@ const Dashboard: React.FC = () => {
                 </div>
               ) : (
                 <>
-                  <div className="grid  gap-4">
+                  <div className="grid gap-4">
                     <div className="border-r border-gray-800 pr-4">
                       <h3 className="text-sm text-gray-400 mb-2">24h Volume</h3>
                       <div className="bg-gradient-to-r from-custom-green/20 to-transparent p-2 rounded-lg">
                         <p className="text-xl font-bold text-white">
                           {formatCurrency(data.volume)}
                         </p>
-                        {/* <div className="flex items-center mt-1">
-                          <span className="text-xs bg-custom-green/20 text-custom-green px-2 py-0.5 rounded-full">
-                            +12.4%
-                          </span>
-                        </div> */}
                       </div>
                     </div>
                     <div className="border-r border-gray-800 pr-4">
@@ -194,33 +195,6 @@ const Dashboard: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  {/* 
-                  <div className="mt-4">
-                    <h3 className="text-sm text-gray-400 mb-3 flex items-center">
-                      <span className="inline-block w-1 h-4 bg-custom-green rounded mr-2"></span>
-                      Price Statistics
-                    </h3>
-                    <div className="bg-black/30 p-3 rounded-lg border border-gray-800/30">
-                      <div className="grid grid-cols-2 gap-3">
-                        {/* <div>
-                          <p className="text-xs text-gray-400 mb-1">
-                            All-Time High
-                          </p>
-                          <p className="text-sm text-white font-semibold">
-                            {formatCurrency(0.0000348)}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-gray-400 mb-1">
-                            All-Time Low
-                          </p>
-                          <p className="text-sm text-white font-semibold">
-                            {formatCurrency(0.0000168)}
-                          </p>
-                        </div> */}
-                  {/* </div> */}
-                  {/* </div> */}
-                  {/* </div> */}
                 </>
               )}
             </GlassPanel>
