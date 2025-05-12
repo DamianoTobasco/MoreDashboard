@@ -35,6 +35,11 @@ export interface TokenHolder {
   tag?: string;
 }
 
+export interface MarketCapData {
+  date: string;
+  value: number;
+}
+
 export interface DashboardData {
   meta: TokenMetadata | null;
   supply: string;
@@ -43,6 +48,7 @@ export interface DashboardData {
   transfers: TokenTransfer[];
   candles: CandleData[];
   marketCap: number;
+  marketCapHistory: MarketCapData[];
   tokenHolders: TokenHolder[];
   burnAddress?: string;
   burnedAmount?: string;
@@ -65,11 +71,4 @@ export interface DataSourceTimestamps {
   volume: number;
   liquidity: number;
   plsPrice: number;
-}
-
-// Add TradingView to Window interface
-declare global {
-  interface Window {
-    TradingView: any;
-  }
 }

@@ -11,8 +11,9 @@ import {
   Legend,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-import { subDays, format } from 'date-fns';
+import { format } from 'date-fns';
 import { formatCurrency } from '../utils/formatters';
+import { MarketCapData } from '../types';
 
 ChartJS.register(
   CategoryScale,
@@ -28,40 +29,20 @@ ChartJS.register(
 interface MarketCapChartProps {
   isLoading: boolean;
   marketCap: number;
+  marketCapHistory: MarketCapData[];
 }
 
 const MarketCapChart: React.FC<MarketCapChartProps> = ({ 
   isLoading, 
-  marketCap
+  marketCapHistory
 }) => {
-  // Generate mock data for the past 7 days
-  const generateMockData = () => {
-    const data = [];
-    const baseMarketCap = marketCap * 0.95; // Start with 95% of current market cap
-    
-    for (let i = 6; i >= 0; i--) {
-      const date = subDays(new Date(), i);
-      // Create a smooth progression from start to current market cap
-      const dailyMarketCap = baseMarketCap + 
-        ((marketCap - baseMarketCap) * ((7 - i) / 7));
-      
-      data.push({
-        date: format(date, 'MMM dd'),
-        marketCap: dailyMarketCap,
-      });
-    }
-    return data;
-  };
-
-  const mockData = generateMockData();
-
   const data = {
-    labels: mockData.map(d => d.date),
+    labels: marketCapHistory.map(d => format(new Date(d.date), 'MMM dd')),
     datasets: [
       {
         fill: true,
         label: 'Market Cap',
-        data: mockData.map(d => d.marketCap),
+        data: marketCapHistory.map(d => d.value),
         borderColor: '#0DFF00',
         backgroundColor: 'rgba(13, 255, 0, 0.1)',
         tension: 0.4,
@@ -134,5 +115,3 @@ const MarketCapChart: React.FC<MarketCapChartProps> = ({
     </div>
   );
 };
-
-export default MarketCapChart;

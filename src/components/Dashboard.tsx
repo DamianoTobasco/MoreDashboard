@@ -150,6 +150,7 @@ const Dashboard: React.FC = () => {
             <MarketCapChart 
               isLoading={loading} 
               marketCap={data.marketCap}
+              marketCapHistory={data.marketCapHistory}
             />
           </GlassPanel>
         </div>
