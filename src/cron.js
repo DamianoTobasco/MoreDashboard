@@ -104,14 +104,6 @@ const insert_and_delete = async () => {
         .from("chart_data")
         .delete()
         .eq("id", oldestId);
-
-      if (deleteError) {
-        console.error("Error deleting oldest row:", deleteError.message);
-      } else {
-        console.log(`🗑️ Deleted oldest row with id ${oldestId}`);
-      }
-    } else {
-      console.log("✅ No need to delete, total rows <= 7");
     }
   }
 };
