@@ -14,6 +14,8 @@ import MarketCapChart from "./MarketCapChart";
 import useDashboardData from "../hooks/useDataFetching";
 import { formatCurrency, formatLargeNumber } from "../utils/formatters";
 import { ShinyText } from "./ui/shiny-text";
+import { createClient } from "@supabase/supabase-js";
+import { useState } from "react";
 
 const Dashboard: React.FC = () => {
   const {
@@ -24,11 +26,49 @@ const Dashboard: React.FC = () => {
     refreshData,
     refreshBalanceData,
   } = useDashboardData();
-  
+
+  const supabase = createClient(
+    import.meta.env.VITE_SUPABASE_URL,
+    import.meta.env.VITE_SUPABASE_ANON_KEY
+  );
   useEffect(() => {
     handleRefresh();
+    fetchLast7Rows();
   }, []);
-  
+
+  const [holdersData, setHoldersData] = useState<any[]>([]);
+  const [liquidityData, setLiquidityData] = useState<any[]>([]);
+  const [marketCapData, setMarketCapData] = useState<any[]>([]);
+
+  const fetchLast7Rows = async () => {
+    const { data, error } = await supabase
+      .from("chart_data")
+      .select("holders, liquidity, marketcap, date")
+      .order("date", { ascending: false })
+      .limit(7);
+
+    if (error) {
+      console.error("Error fetching data:", error.message);
+    } else {
+      // Reverse to get ascending order (oldest first)
+      const sortedData = data.reverse();
+      const holdersData = sortedData.map((item) => ({
+        holders: item.holders,
+        date: item.date,
+      }));
+      const liquidityData = sortedData.map((item) => ({
+        liquidity: item.liquidity,
+        date: item.date,
+      }));
+      const marketCapData = sortedData.map((item) => ({
+        marketcap: item.marketcap,
+        date: item.date,
+      }));
+      setHoldersData(holdersData);
+      setLiquidityData(liquidityData);
+      setMarketCapData(marketCapData);
+    }
+  };
   const handleRefresh = async () => {
     await refreshData();
   };
@@ -135,23 +175,15 @@ const Dashboard: React.FC = () => {
         {/* Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <GlassPanel title="Holders Growth">
-            <HoldersChart isLoading={loading} holders={data.holders} />
+            <HoldersChart isLoading={loading} holders={holdersData} />
           </GlassPanel>
 
           <GlassPanel title="Buy-Side PLS Liquidity">
-            <LiquidityChart 
-              isLoading={loading} 
-              liquidity={data.liquidity} 
-              liquidityChange={data.liquidityChange}
-            />
+            <LiquidityChart isLoading={loading} liquidity={liquidityData} />
           </GlassPanel>
 
           <GlassPanel title="Market Cap Growth">
-            <MarketCapChart 
-              isLoading={loading} 
-              marketCap={data.marketCap}
-              marketCapHistory={data.marketCapHistory}
-            />
+            <MarketCapChart isLoading={loading} marketCap={marketCapData} />
           </GlassPanel>
         </div>
 

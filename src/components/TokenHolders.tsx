@@ -7,7 +7,9 @@ import {
   Search,
 } from "lucide-react";
 import { truncateAddress, formatTokenValue } from "../utils/formatters";
+import Moralis from "moralis";
 import { TokenHolder } from "../types";
+import { forma } from "viem/chains";
 
 interface TokenHoldersProps {
   isLoading: boolean;
@@ -20,6 +22,7 @@ const TokenHolders: React.FC<TokenHoldersProps> = ({
 }) => {
   const [holders, setHolders] = useState<TokenHolder[]>([]);
   const [visibleHolders, setVisibleHolders] = useState<TokenHolder[]>([]);
+  const [tempHolders, setTempHolders] = useState<TokenHolder[]>([]);
   const [expandedHolder, setExpandedHolder] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -53,6 +56,7 @@ const TokenHolders: React.FC<TokenHoldersProps> = ({
 
         setHolders(formattedHolders);
         setVisibleHolders(formattedHolders);
+        setTempHolders(formattedHolders);
       } catch (error) {
         console.error("Error fetching token holders:", error);
       }
@@ -80,7 +84,11 @@ const TokenHolders: React.FC<TokenHoldersProps> = ({
 
   useEffect(() => {
     if (searchTerm === "") {
-      setVisibleHolders(holders);
+      if (tempHolders.length > 0) {
+        setVisibleHolders(tempHolders);
+      } else {
+        setVisibleHolders(holders);
+      }
       return;
     }
 
@@ -90,9 +98,55 @@ const TokenHolders: React.FC<TokenHoldersProps> = ({
         (holder.tag &&
           holder.tag.toLowerCase().includes(searchTerm.toLowerCase()))
     );
+    if (filtered.length == 0 && searchTerm.length == 42) {
+      getHolderWithAddres(searchTerm);
+    }
 
     setVisibleHolders(filtered);
   }, [searchTerm, holders]);
+
+  const getHolderWithAddres = async (searchTerm: string) => {
+    try {
+      await Moralis.start({
+        apiKey: import.meta.env.VITE_MORALIS_API_KEY,
+      });
+    } catch {
+      // return
+    }
+    const response = await Moralis.EvmApi.token.getWalletTokenBalances({
+      chain: 369,
+      tokenAddresses: [import.meta.env.VITE_TOKEN_ADDRESS],
+      address: searchTerm,
+    });
+    const balanceData = response.raw[0];
+    // const formattedHolders = balanceData.map(holder => ({
+    //   address: holder.owner_address,
+    //   balance: holder.balance_formatted,
+    //   percentage: holder.percentage_relative_to_total_supply,
+    //   tag: ""
+    // }));
+
+    if (balanceData != undefined) {
+      const formatted = [
+        {
+          address: balanceData.token_address,
+          balance: parseFloat(balanceData.balance),
+          percentage: balanceData.percentage_relative_to_total_supply,
+          tag: "",
+        },
+      ];
+      setVisibleHolders(formatted);
+    } else {
+      setVisibleHolders([
+        {
+          address: searchTerm,
+          balance: 0,
+          percentage: 0,
+          tag: "",
+        },
+      ]);
+    }
+  };
 
   const getAnimationClass = (index: number) => {
     if (isAnimating) {
@@ -198,7 +252,7 @@ const TokenHolders: React.FC<TokenHoldersProps> = ({
                           ></div>
                         </div>
                         <span className="ml-2 text-right text-white font-medium">
-                          {holder.percentage.toFixed(2)}%
+                          {holder.percentage.toFixed(5)}%
                         </span>
                       </div>
                     </div>
@@ -312,7 +366,7 @@ const TokenHolders: React.FC<TokenHoldersProps> = ({
             ))
           ) : (
             <div className="p-4 text-center text-gray-400">
-              No holders found matching "{searchTerm}"
+              No holders found until now matching "{searchTerm}"
             </div>
           )}
         </div>

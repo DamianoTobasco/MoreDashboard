@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -9,10 +9,11 @@ import {
   Tooltip,
   Filler,
   Legend,
-} from 'chart.js';
-import { Line } from 'react-chartjs-2';
-import { subDays, format } from 'date-fns';
-import { formatCurrency } from '../utils/formatters';
+} from "chart.js";
+import { Line } from "react-chartjs-2";
+import { formatCurrency } from "../utils/formatters";
+import { format } from "date-fns";
+import { parseISO } from "date-fns";
 
 ChartJS.register(
   CategoryScale,
@@ -27,51 +28,26 @@ ChartJS.register(
 
 interface LiquidityChartProps {
   isLoading: boolean;
-  liquidity: string;
-  liquidityChange: number;
+  liquidity: any[];
 }
 
-const LiquidityChart: React.FC<LiquidityChartProps> = ({ 
-  isLoading, 
+const LiquidityChart: React.FC<LiquidityChartProps> = ({
+  isLoading,
   liquidity,
-  liquidityChange 
 }) => {
-  // Generate mock data for the past 7 days
-  const generateMockData = () => {
-    const data = [];
-    // Use half of total liquidity to represent buy-side only
-    const currentLiquidity = parseFloat(liquidity) / 2;
-    const startLiquidity = currentLiquidity / (1 + (liquidityChange / 100));
-    
-    for (let i = 6; i >= 0; i--) {
-      const date = subDays(new Date(), i);
-      // Create a smooth progression from start to current liquidity
-      const dailyLiquidity = startLiquidity + 
-        ((currentLiquidity - startLiquidity) * ((7 - i) / 7));
-      
-      data.push({
-        date: format(date, 'MMM dd'),
-        liquidity: dailyLiquidity,
-      });
-    }
-    return data;
-  };
-
-  const mockData = generateMockData();
-
   const data = {
-    labels: mockData.map(d => d.date),
+    labels: liquidity.map((d) => format(parseISO(d.date), "MMM dd")),
     datasets: [
       {
         fill: true,
-        label: 'Buy-Side PLS Liquidity',
-        data: mockData.map(d => d.liquidity),
-        borderColor: '#0DFF00',
-        backgroundColor: 'rgba(13, 255, 0, 0.1)',
+        label: "Buy-Side PLS Liquidity",
+        data: liquidity.map((d) => d.liquidity),
+        borderColor: "#0DFF00",
+        backgroundColor: "rgba(13, 255, 0, 0.1)",
         tension: 0.4,
         pointRadius: 2,
-        pointBackgroundColor: '#0DFF00',
-        pointBorderColor: '#0DFF00',
+        pointBackgroundColor: "#0DFF00",
+        pointBorderColor: "#0DFF00",
         borderWidth: 2,
       },
     ],
@@ -85,9 +61,9 @@ const LiquidityChart: React.FC<LiquidityChartProps> = ({
         display: false,
       },
       tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        titleColor: '#fff',
-        bodyColor: '#fff',
+        backgroundColor: "rgba(0, 0, 0, 0.8)",
+        titleColor: "#fff",
+        bodyColor: "#fff",
         padding: 12,
         displayColors: false,
         callbacks: {
@@ -104,7 +80,7 @@ const LiquidityChart: React.FC<LiquidityChartProps> = ({
           drawBorder: false,
         },
         ticks: {
-          color: '#666',
+          color: "#666",
           font: {
             size: 10,
           },
@@ -112,11 +88,11 @@ const LiquidityChart: React.FC<LiquidityChartProps> = ({
       },
       y: {
         grid: {
-          color: 'rgba(255, 255, 255, 0.05)',
+          color: "rgba(255, 255, 255, 0.05)",
           drawBorder: false,
         },
         ticks: {
-          color: '#666',
+          color: "#666",
           font: {
             size: 10,
           },
