@@ -48,11 +48,14 @@ async function getTokenLiquidity() {
     },
   };
   const response = await fetch(
-    `https://deep-index.moralis.io/api/v2.2/erc20/${TOKEN_ADDRESS}/pairs?chain=pulse&limit=1`,
+    `https://deep-index.moralis.io/api/v2.2/erc20/${TOKEN_ADDRESS}/pairs?chain=pulse&limit=2`,
     options
   );
   const result = await response.json();
-  return result.pairs[0].liquidity_usd;
+  return (
+    result.pairs[0].pair[1].liquidity_usd +
+    result.pairs[1].pair[1].liquidity_usd
+  );
 }
 
 async function getMarketCap() {
