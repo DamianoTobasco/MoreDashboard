@@ -178,7 +178,7 @@ const Dashboard: React.FC = () => {
             <HoldersChart isLoading={loading} holders={holdersData} />
           </GlassPanel>
 
-          <GlassPanel title="Buy-Side PLS Liquidity">
+          <GlassPanel title="Buy-Side Liquidity">
             <LiquidityChart isLoading={loading} liquidity={liquidityData} />
           </GlassPanel>
 
