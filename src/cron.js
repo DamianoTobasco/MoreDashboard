@@ -1,110 +1,154 @@
+// cron.js
 import { createClient } from "@supabase/supabase-js";
 import Moralis from "moralis";
 
+// ────────────────────────────────────────────────────────────
+// ENV / CONSTANTS
+// ────────────────────────────────────────────────────────────
 const SUPABASE_URL = "https://xnskindbzrwyfphpweii.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhuc2tpbmRienJ3eWZwaHB3ZWlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MTg1NjcsImV4cCI6MjA2MDk5NDU2N30.kkRjkJjNCvrZ1cDCKqoLYognETQRrEatLwoMNo4ClJk";
+
 const MORALIS_API_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6IjVlZjI4YjkxLTBiYjktNDJlOS1iMWZlLWJmMzE2YWZhMDk0NSIsIm9yZ0lkIjoiNDQ0NjM2IiwidXNlcklkIjoiNDU3NDc2IiwidHlwZUlkIjoiMWFiNzQ5MTEtYzY3YS00NzYwLTk2YTktZjFmY2FjZTUwMjM5IiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3NDYwMjEzMzUsImV4cCI6NDkwMTc4MTMzNX0.EXOLzghiQHyCkP2dJyLHsnuenYRGRlu_pyVeWDBpUPw";
+
 const TOKEN_ADDRESS = "0x88dF7BEdc5969371A2C9A74690cBB3668061E1E9";
-async function init_moralis() {
+
+// ────────────────────────────────────────────────────────────
+// INIT
+// ────────────────────────────────────────────────────────────
+async function initMoralis() {
   try {
-    await Moralis.start({
-      apiKey: MORALIS_API_KEY,
-    });
-  } catch {
-    // return
+    await Moralis.start({ apiKey: MORALIS_API_KEY });
+  } catch (err) {
+    console.error("Moralis already initialised or failed to start:", err.message);
   }
 }
 
+// ────────────────────────────────────────────────────────────
+// DATA HELPERS
+// ────────────────────────────────────────────────────────────
 async function getHoldersCount() {
   try {
-    const options = {
-      method: "GET",
-      headers: {
-        accept: "application/json",
-        "X-API-Key": MORALIS_API_KEY,
-      },
-    };
-
-    const response = await fetch(
+    const res = await fetch(
       `https://deep-index.moralis.io/api/v2.2/erc20/${TOKEN_ADDRESS}/holders?chain=pulse`,
-      options
+      {
+        headers: {
+          accept: "application/json",
+          "X-API-Key": MORALIS_API_KEY,
+        },
+      }
     );
-    const result = await response.json();
-    return result.totalHolders;
-  } catch (error) {
-    console.error("Error fetching token holders:", error);
-    throw error;
+
+    if (!res.ok) throw new Error(`Bad response (${res.status})`);
+
+    const json = await res.json();
+    return Number(json.totalHolders) || 0;
+  } catch (err) {
+    console.error("Error fetching holders count:", err.message);
+    return 0;
   }
 }
 
 async function getTokenLiquidity() {
-  const options = {
-    method: "GET",
-    headers: {
-      accept: "application/json",
-      "X-API-Key": MORALIS_API_KEY,
-    },
-  };
-  const response = await fetch(
-    `https://deep-index.moralis.io/api/v2.2/erc20/${TOKEN_ADDRESS}/pairs?chain=pulse&limit=1`,
-    options
-  );
-  const result = await response.json();
-  return result.pairs[0].liquidity_usd;
+  try {
+    const res = await fetch(
+      `https://deep-index.moralis.io/api/v2.2/erc20/${TOKEN_ADDRESS}/pairs?chain=pulse&limit=1`,
+      {
+        headers: {
+          accept: "application/json",
+          "X-API-Key": MORALIS_API_KEY,
+        },
+      }
+    );
+
+    if (!res.ok) throw new Error(`Bad response (${res.status})`);
+
+    const json = await res.json();
+    const usd = json?.pairs?.[0]?.liquidity_usd;
+    return Number.parseFloat(usd) || 0;
+  } catch (err) {
+    console.error("Error fetching token liquidity:", err.message);
+    return 0;
+  }
 }
 
 async function getMarketCap() {
   try {
-    const response = await Moralis.EvmApi.token.getTokenMetadata({
-      chain: 369,
+    const res = await Moralis.EvmApi.token.getTokenMetadata({
+      chain: 369, // PulseChain
       addresses: [TOKEN_ADDRESS],
     });
-    return response.raw[0].market_cap;
-  } catch (error) {
-    console.error("Error fetching token metadata:", error);
-    throw error;
+
+    const cap = res?.raw?.[0]?.market_cap;
+    return Number.parseFloat(cap) || 0;
+  } catch (err) {
+    console.error("Error fetching market cap:", err.message);
+    return 0;
   }
 }
 
-// Define the data you want to insert
-const insert_and_delete = async () => {
+// ────────────────────────────────────────────────────────────
+// MAIN INSERT / TRIM LOGIC
+// ────────────────────────────────────────────────────────────
+async function insertAndTrim() {
+  await initMoralis();
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  await init_moralis();
-  const holders = parseInt(await getHoldersCount());
-  const liquidity = parseFloat(await getTokenLiquidity()).toFixed(2);
-  const marketcap = parseFloat(await getMarketCap()).toFixed(2);
-  const data = {
-    holders: holders,
-    liquidity: liquidity,
-    marketcap: marketcap,
-    date: new Date().toISOString(), // Or a specific date string
+
+  // pull metrics in parallel for speed
+  const [holders, liquidity, marketcap] = await Promise.all([
+    getHoldersCount(),
+    getTokenLiquidity(),
+    getMarketCap(),
+  ]);
+
+  const row = {
+    holders,
+    liquidity: liquidity.toFixed(2),
+    marketcap: marketcap.toFixed(2),
+    date: new Date().toISOString(),
   };
-  const { data: insertedData, error } = await supabase
-    .from("chart_data") // Replace with your actual table name
-    .insert([data])
-    .select(); // Optional: returns the inserted row(s)
 
-  if (error) {
-    console.error("Error inserting data:", error.message);
-  } else {
-    const { data: allRows, error: fetchError } = await supabase
-      .from("chart_data")
-      .select("id, date")
-      .order("date", { ascending: true });
+  const { error: insertErr } = await supabase
+    .from("chart_data")
+    .insert([row]);
 
-    if (fetchError) {
-      console.error("Error fetching rows:", fetchError.message);
-      return;
-    }
-    if (allRows.length > 7) {
-      const oldestId = allRows[0].id;
-      const { error: deleteError } = await supabase
-        .from("chart_data")
-        .delete()
-        .eq("id", oldestId);
-    }
+  if (insertErr) {
+    console.error("Error inserting data:", insertErr.message);
+    return;
   }
-};
-insert_and_delete();
+
+  // keep only latest 7 rows
+  const { data: rows, error: fetchErr } = await supabase
+    .from("chart_data")
+    .select("id")
+    .order("date", { ascending: true });
+
+  if (fetchErr) {
+    console.error("Error fetching rows:", fetchErr.message);
+    return;
+  }
+
+  if (rows.length > 7) {
+    const idsToDelete = rows.slice(0, rows.length - 7).map((r) => r.id);
+    const { error: deleteErr } = await supabase
+      .from("chart_data")
+      .delete()
+      .in("id", idsToDelete);
+
+    if (deleteErr) console.error("Error deleting old rows:", deleteErr.message);
+  }
+}
+
+// ────────────────────────────────────────────────────────────
+// EXECUTE
+// ────────────────────────────────────────────────────────────
+insertAndTrim()
+  .then(() => {
+    console.log("Cron job completed");
+    process.exit(0);
+  })
+  .catch((err) => {
+    console.error("Unhandled error in cron job:", err);
+    process.exit(1);
+  });
