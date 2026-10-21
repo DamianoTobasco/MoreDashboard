@@ -4,8 +4,10 @@ import Moralis from "moralis";
 const SUPABASE_URL = "https://xnskindbzrwyfphpweii.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhuc2tpbmRienJ3eWZwaHB3ZWlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MTg1NjcsImV4cCI6MjA2MDk5NDU2N30.kkRjkJjNCvrZ1cDCKqoLYognETQRrEatLwoMNo4ClJk";
-const MORALIS_API_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6IjVlZjI4YjkxLTBiYjktNDJlOS1iMWZlLWJmMzE2YWZhMDk0NSIsIm9yZ0lkIjoiNDQ0NjM2IiwidXNlcklkIjoiNDU3NDc2IiwidHlwZUlkIjoiMWFiNzQ5MTEtYzY3YS00NzYwLTk2YTktZjFmY2FjZTUwMjM5IiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3NDYwMjEzMzUsImV4cCI6NDkwMTc4MTMzNX0.EXOLzghiQHyCkP2dJyLHsnuenYRGRlu_pyVeWDBpUPw";
+const MORALIS_API_KEY = process.env.MORALIS_API_KEY;
+if (!MORALIS_API_KEY) {
+  throw new Error("MORALIS_API_KEY must be configured as a server-side secret");
+}
 const TOKEN_ADDRESS = "0x88dF7BEdc5969371A2C9A74690cBB3668061E1E9";
 async function init_moralis() {
   try {
